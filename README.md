@@ -1,11 +1,12 @@
 # DMD DLPC900
 
-## ToDos
-- [ ] Test 
+## ToDos (according to priority)
+- [ ] Test Communication Status
 - [ ] Make python wrapper for GUI
+- [ ] Check the following function for mirror control w/o LEDs: `LCR_GetDMDBlocks()`, `LCR_SetDMDBlocks()`
 - [ ] Remove uncessary files to run DMD (Splash, compress but still undetermined)
     - Need to read up the use for these files
-- [ ] Check the following function for mirror control w/o LEDs
+- [ ] Clean up main.c so that cmd functions are seperated according to its category
 
 
 ## Directory Structure
