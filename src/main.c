@@ -1,6 +1,6 @@
 /*
 * DLPC900 Pattern CLI
-* Simple command-line interface to control DLPC900 pattern modes
+* Simple command line interface to control DLPC900 pattern modes
 * Will be extended with a python wrapper for GUI use   
 */
 
@@ -197,25 +197,21 @@ int cmd_tpg(void) {
 }
 
 int cmd_solid(void) {
-    /* Disable pattern mode first */
     if (LCR_SetMode(PTN_MODE_DISABLE) < 0) {
         printf("ERROR: Cannot disable pattern mode\n");
         return -1;
     }
     
-    /* Set input source to internal test pattern */
     if (LCR_SetInputSource(1, 0) < 0) {
         printf("ERROR: Cannot set input source\n");
         return -1;
     }
     
-    /* Select solid field pattern */
     if (LCR_SetTPGSelect(0) < 0) {
         printf("ERROR: Cannot select solid pattern\n");
         return -1;
     }
     
-    /* Set TPG color (all white = all mirrors ON) */
     if (LCR_SetTPGColor(1023, 1023, 1023, 0, 0, 0) < 0) {
         printf("ERROR: Cannot set TPG color\n");
         return -1;

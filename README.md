@@ -36,6 +36,7 @@ DLPC900_CLI/
 │   └── main.c
 ├── build.bat
 ├── dlpc900_cli.exe
+├── diagnostic.log
 └── README.md
 ```
 **Where `*` means it originated from the DLPC900REF-GUI codebase**
@@ -49,3 +50,4 @@ DLPC900_CLI/
 [DLPC900 Programmer's Guide](https://www.ti.com/lit/ug/dlpu018j/dlpu018j.pdf?ts=1765949573573&ref_url=https%253A%252F%252Fwww.bing.com%252F)
 - This document specifies the command and control interface to the DLPC900 controller and defines all applicable 
 commands, default settings, and control register bit definitions.
+
