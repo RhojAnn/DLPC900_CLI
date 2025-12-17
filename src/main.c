@@ -9,6 +9,7 @@
 #include <string.h>
 #include "API.h"
 #include "usb.h"
+#include "diagnosticwindow.h"
 
 void print_menu(void) {
     printf("\n");
@@ -17,10 +18,12 @@ void print_menu(void) {
     printf("  1. Get device status\n");
     printf("  2. Get firmware version\n");
     printf("  3. Get current mode\n");
-    printf("  4. Run test pattern\n");
+    printf("  4. Run OTF pattern sequence\n");
     printf("  5. Stop pattern display\n");
     printf("  6. Switch to OTF mode\n");
     printf("  7. Disable pattern mode\n");
+    printf("  8. Show TPG test pattern (checkerboard)\n");
+    printf("  9. Show solid color\n");
     printf("  0. Exit\n");
     printf("\n");
 }
@@ -168,6 +171,60 @@ int cmd_stop(void) {
     return 0;
 }
 
+int cmd_tpg(void) {
+    /* Disable pattern mode first to use TPG */
+    if (LCR_SetMode(PTN_MODE_DISABLE) < 0) {
+        printf("ERROR: Cannot disable pattern mode\n");
+        return -1;
+    }
+    
+    /* Set input source to internal test pattern (0=parallel, 1=internal test pattern) */
+    if (LCR_SetInputSource(1, 0) < 0) {
+        printf("ERROR: Cannot set input source to TPG\n");
+        return -1;
+    }
+    
+    /* Select test pattern: 0=solid, 1=horizontal ramp, 2=vertical ramp,
+       3=horizontal lines, 4=diagonal lines, 5=vertical lines,
+       6=grid, 7=checkerboard, 8=RGB ramp, 9=color bars */
+    if (LCR_SetTPGSelect(7) < 0) {  /* 7 = checkerboard */
+        printf("ERROR: Cannot select TPG pattern\n");
+        return -1;
+    }
+    
+    printf("TPG checkerboard pattern displayed on DMD\n");
+    return 0;
+}
+
+int cmd_solid(void) {
+    /* Disable pattern mode first */
+    if (LCR_SetMode(PTN_MODE_DISABLE) < 0) {
+        printf("ERROR: Cannot disable pattern mode\n");
+        return -1;
+    }
+    
+    /* Set input source to internal test pattern */
+    if (LCR_SetInputSource(1, 0) < 0) {
+        printf("ERROR: Cannot set input source\n");
+        return -1;
+    }
+    
+    /* Select solid field pattern */
+    if (LCR_SetTPGSelect(0) < 0) {
+        printf("ERROR: Cannot select solid pattern\n");
+        return -1;
+    }
+    
+    /* Set TPG color (all white = all mirrors ON) */
+    if (LCR_SetTPGColor(1023, 1023, 1023, 0, 0, 0) < 0) {
+        printf("ERROR: Cannot set TPG color\n");
+        return -1;
+    }
+    
+    printf("Solid white pattern displayed - all mirrors ON\n");
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     DIAG_Init("diagnostic.log", 1);
 
@@ -214,12 +271,18 @@ int main(int argc, char *argv[]) {
             case 7:
                 cmd_disable();
                 break;
+            case 8:
+                cmd_tpg();
+                break;
+            case 9:
+                cmd_solid();
+                break;
             case 0:
                 printf("Stopping and exiting...\n");
                 disconnect_device();
                 return 0;
             default:
-                printf("Invalid choice. Please enter 0-7.\n");
+                printf("Invalid choice. Please enter 0-9.\n");
                 break;
         }
     }

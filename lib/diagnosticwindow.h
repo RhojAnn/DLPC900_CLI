@@ -30,6 +30,9 @@ typedef struct
 extern "C" {
 #endif
 
+int DIAG_Init(const char *logfile, int toConsole);
+void DIAG_ClearLog(void);
+void DIAG_DumpLog(void);
 void DIAG_updateProjectorControl(DIAG_CommandInfo_t*, int);
 void DIAG_updateCommandLog(DIAG_CommandInfo_t*, unsigned char* , unsigned char*, int);
 

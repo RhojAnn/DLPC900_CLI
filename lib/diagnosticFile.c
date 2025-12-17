@@ -6,7 +6,7 @@
 */
 
 #include "diagnosticwindow.h"
-#include "../lib/usb.h"
+#include "usb.h"
 #include <stdio.h>
 #include <string.h>
 #include <time.h>

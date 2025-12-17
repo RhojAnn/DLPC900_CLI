@@ -3,7 +3,7 @@ echo Building DLPC900 CLI...
 
 gcc -o dlpc900_cli.exe ^
     src\main.c ^
-    src\diagnosticwindow_stub.c ^
+    lib\diagnosticFile.c ^
     lib\API.c ^
     lib\usb.c ^
     lib\pattern.c ^
