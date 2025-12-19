@@ -7,6 +7,7 @@
 - [ ] Ensure that DMD Communication Status isn't an hardware issue
 - [ ] Remove uncessary files to run DMD (Splash, compress but still undetermined)
     - Need to read up the use for these files
+- [ ] Add comments for functions
 
 ## Done
 - [x] Continue cleaning out code
@@ -47,6 +48,10 @@ DLPC900_CLI/
 │   ├── usb.c
 │   └── usb.h
 ├── src/
+│   └── cmd_connection.c
+│   └── cmd_image.c
+│   └── cmd_pattern.c
+│   └── cmd_status.c
 │   └── main.c
 ├── build.bat
 ├── dlpc900_cli.exe

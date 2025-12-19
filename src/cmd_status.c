@@ -1,9 +1,20 @@
+/*
+* Status and Version commands
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "..\lib\API.h"
 #include "usb.h"
 
+/*
+* Prints out the current status for: Hardware, System, Main, DLPA200, DMD Connection
+* 
+* As of 19/12/2025, DMD Connection Status face detection issues 
+* with potential reason of the DMD trying to detect a second controller 
+* but it doesn't exists
+*/
 int cmd_status(void) {
     unsigned char hw, sys, main_status, dlpa, dmd;
     
@@ -21,6 +32,9 @@ int cmd_status(void) {
     return 0;
 }
 
+/**
+ * Prints out the firmware version information: App, API, SW Config, Seq Config
+ */
 int cmd_version(void) {
     unsigned int app, api, swconfig, seqconfig;
     
@@ -37,6 +51,9 @@ int cmd_version(void) {
     return 0;
 }
 
+/**
+ * Toggles the DMD saver mode (idle mode)
+ */
 int cmd_toggle_idle(void){
     int current_mode = LCR_GetDMDSaverMode();
     

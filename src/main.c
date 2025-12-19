@@ -39,6 +39,8 @@ int main(int argc, char *argv[]) {
     
     printf("DLPC900 Pattern CLI\n");
     
+
+
     if (connect_device() != 0) 
         printf("\nRunning in disconnected mode (commands will fail)\n");
     
@@ -58,20 +60,21 @@ int main(int argc, char *argv[]) {
             case 1:  cmd_status();          break;
             case 2:  cmd_version();         break;
             case 3:  cmd_toggle_idle();     break;
-            case 4:  cmd_mode();            break;
+            case 4:  cmd_pattern_mode();    break;
             case 5:  cmd_pattern();         break;
             case 6:  cmd_clear_pattern();   break;
             case 7:  cmd_otf();             break;
             case 8:  cmd_disable();         break;
             case 9:  cmd_tpg();             break;
             case 10: cmd_solid();           break;
-            case 11: cmd_load_bmp();        break;
+            case 11: cmd_otf();
+                     cmd_load_bmp();        break;
             case 0:
                 printf("Stopping and exiting...\n");
                 disconnect_device();
                 return 0;
             default:
-                printf("Invalid choice. Please enter 0-10.\n");
+                printf("Invalid choice. Please enter 0-11.\n");
                 break;
         }
     }

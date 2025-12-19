@@ -1,7 +1,7 @@
 #ifndef CMD_H
 #define CMD_H
 
-// Connection commands (cmd_connect.c)
+// Connection commands (cmd_connection.c)
 int connect_device(void);
 void disconnect_device(void);
 
@@ -13,7 +13,7 @@ int cmd_toggle_idle(void);
 // Pattern commands (cmd_pattern.c)
 int cmd_pattern(void);
 int cmd_otf(void);
-int cmd_mode(void);
+int cmd_pattern_mode(void);
 int cmd_clear_pattern(void);
 int cmd_disable(void);
 int cmd_tpg(void);

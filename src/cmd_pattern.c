@@ -1,10 +1,16 @@
+/*
+* Pattern commands and testing LED display
+* Only uses OTF and Disable modes
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "cmd.h"
 #include "..\lib\API.h"
 
-
+/**
+* Switches to On-The-Fly (OTF) pattern mode
+*/
 int cmd_otf(void) {
     if (LCR_SetMode(3) < 0) {
         printf("ERROR: Cannot set OTF mode\n");
@@ -14,6 +20,9 @@ int cmd_otf(void) {
     return 0;
 }
 
+/**
+* Switches to Disable pattern mode
+*/
 int cmd_disable(void) {
     if (LCR_SetMode(0) < 0) {
         printf("ERROR: Cannot disable pattern mode\n");
@@ -23,7 +32,10 @@ int cmd_disable(void) {
     return 0;
 }
 
-int cmd_mode(void) {
+/**
+* Prints out the current pattern mode
+*/
+int cmd_pattern_mode(void) {
     API_DisplayMode_t mode;
     
     if (LCR_GetMode(&mode) < 0) {
@@ -52,6 +64,7 @@ int cmd_mode(void) {
     return 0;
 }
 
+// Maybe not needed
 int cmd_pattern(void) {
     printf("Setting up pattern sequence...\n");
     
@@ -85,6 +98,9 @@ int cmd_pattern(void) {
     return 0;
 }
 
+/**
+* Stop current pattern sequence from running
+*/
 int cmd_clear_pattern(void) {
     if (LCR_PatternDisplay(0x0) < 0) {
         printf("ERROR: Cannot stop pattern\n");
@@ -94,6 +110,9 @@ int cmd_clear_pattern(void) {
     return 0;
 }
 
+/**
+* Test if pattern sequence works by generating a checkerboard
+*/
 int cmd_tpg(void) {
     cmd_disable();
     
@@ -123,6 +142,9 @@ int cmd_tpg(void) {
     return 0;
 }
 
+/**
+* Test if pattern sequence works by generating a solid colour
+*/
 int cmd_solid(void) {
     if (LCR_SetMode(PTN_MODE_DISABLE) < 0) {
         printf("ERROR: Cannot disable pattern mode\n");

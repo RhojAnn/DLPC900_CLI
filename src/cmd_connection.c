@@ -1,7 +1,14 @@
+/**
+* Handles USB Connection
+*/
 #include <stdio.h>
 #include "usb.h"
 
 int connect_device(void) {
+/** 
+ *   Establish USB connection to DLPC900 device
+*/
+
     if (USB_Init() != 0) {
         printf("ERROR: USB initialization failed\n");
         return -1;
@@ -18,6 +25,10 @@ int connect_device(void) {
 }
 
 void disconnect_device(void) {
+/*
+*   Close USB connection to DLPC900 device
+*/
+
     USB_Close();
     USB_Exit();
 }

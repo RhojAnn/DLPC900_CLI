@@ -1,7 +1,8 @@
-/*
+/**
  * cmd_image.c
  * BMP image loading and display commands for DLPC900
- * CURRENTLY NOT WORKING. Feature may not be needed depending on the requirements
+ * CURRENTLY NOT WORKING.
+ * Will be only accepting 1-bit bmp files
  */
 
 #include <stdio.h>
@@ -15,7 +16,7 @@
 
 static Image_t* load_bmp_file(const char *filename) {
     Image_t imgInfo;
-    Image_t *image = NULL;
+    Image_t *image1bit = NULL;
     Image_t *image24 = NULL;
     
     /* Get image info first */
@@ -25,72 +26,54 @@ static Image_t* load_bmp_file(const char *filename) {
     }
     printf("Image: %dx%d, %d-bit\n", imgInfo.Width, imgInfo.Height, imgInfo.BitDepth);
     
-    /* Splash format requires 24-bit RGB images */
-    image24 = BMP_AllocImage(imgInfo.Width, imgInfo.Height, 24);
-    if (!image24) {
-        printf("ERROR: Cannot allocate 24-bit image buffer\n");
+    /* Only accept 1-bit images */
+    if (imgInfo.BitDepth != 1) {
+        printf("ERROR: Only 1-bit BMP images are supported (got %d-bit)\n", imgInfo.BitDepth);
         return NULL;
     }
     
-    /* If source is not 24-bit, load original first then convert */
-    if (imgInfo.BitDepth != 24) {
-        printf("Converting %d-bit to 24-bit...\n", imgInfo.BitDepth);
-        
-        /* Load original bit depth image */
-        image = BMP_AllocImage(imgInfo.Width, imgInfo.Height, imgInfo.BitDepth);
-        if (!image) {
-            printf("ERROR: Cannot allocate image buffer\n");
-            BMP_FreeImage(image24);
-            return NULL;
-        }
-        
-        if (BMP_LoadFromFile(filename, image) < 0) {
-            printf("ERROR: Cannot load BMP data\n");
-            BMP_FreeImage(image);
-            BMP_FreeImage(image24);
-            return NULL;
-        }
-        
-        /* Convert to 24-bit by expanding each pixel */
-        int x, y;
-        for (y = 0; y < image->Height; y++) {
-            for (x = 0; x < image->Width; x++) {
-                uint08 pixelVal = 0;
-                int srcByteIdx, srcBitIdx;
-                int dstIdx;
-                
-                if (imgInfo.BitDepth == 1) {
-                    srcByteIdx = y * image->LineWidth + (x / 8);
-                    srcBitIdx = 7 - (x % 8);
-                    pixelVal = (image->Buffer[srcByteIdx] >> srcBitIdx) & 1;
-                    pixelVal = pixelVal ? 255 : 0;  /* Expand 1-bit to 8-bit */
-                } else if (imgInfo.BitDepth == 8) {
-                    srcByteIdx = y * image->LineWidth + x;
-                    pixelVal = image->Buffer[srcByteIdx];
-                } else {
-                    pixelVal = 128;
-                }
-                
-                /* Write to 24-bit image (RGB) */
-                dstIdx = y * image24->LineWidth + (x * 3);
-                image24->Buffer[dstIdx + 0] = pixelVal;  /* R */
-                image24->Buffer[dstIdx + 1] = pixelVal;  /* G */
-                image24->Buffer[dstIdx + 2] = pixelVal;  /* B */
-            }
-        }
-        
-        BMP_FreeImage(image);
-        printf("Conversion complete\n");
-    } else {
-        /* 24-bit image - load directly */
-        if (BMP_LoadFromFile(filename, image24) < 0) {
-            printf("ERROR: Cannot load BMP data\n");
-            BMP_FreeImage(image24);
-            return NULL;
+    /* Allocate and load the 1-bit image */
+    image1bit = BMP_AllocImage(imgInfo.Width, imgInfo.Height, 1);
+    if (!image1bit) {
+        printf("ERROR: Cannot allocate 1-bit image buffer\n");
+        return NULL;
+    }
+    
+    if (BMP_LoadFromFile(filename, image1bit) < 0) {
+        printf("ERROR: Cannot load BMP data\n");
+        BMP_FreeImage(image1bit);
+        return NULL;
+    }
+    
+    printf("1-bit BMP loaded successfully\n");
+    
+    /* Splash format requires 24-bit RGB - convert 1-bit to 24-bit */
+    image24 = BMP_AllocImage(imgInfo.Width, imgInfo.Height, 24);
+    if (!image24) {
+        printf("ERROR: Cannot allocate 24-bit image buffer\n");
+        BMP_FreeImage(image1bit);
+        return NULL;
+    }
+    
+    printf("Converting 1-bit to 24-bit for splash format...\n");
+    int x, y;
+    for (y = 0; y < image1bit->Height; y++) {
+        for (x = 0; x < image1bit->Width; x++) {
+            int srcByteIdx = y * image1bit->LineWidth + (x / 8);
+            int srcBitIdx = 7 - (x % 8);
+            uint08 pixelVal = (image1bit->Buffer[srcByteIdx] >> srcBitIdx) & 1;
+            pixelVal = pixelVal ? 255 : 0;  /* Expand 1-bit to 8-bit */
+            
+            /* Write to 24-bit image (RGB) */
+            int dstIdx = y * image24->LineWidth + (x * 3);
+            image24->Buffer[dstIdx + 0] = pixelVal;  /* R */
+            image24->Buffer[dstIdx + 1] = pixelVal;  /* G */
+            image24->Buffer[dstIdx + 2] = pixelVal;  /* B */
         }
     }
     
-    printf("BMP loaded successfully (24-bit)\n");
+    BMP_FreeImage(image1bit);
+    printf("Conversion complete\n");
     return image24;
 }
 
@@ -149,11 +132,28 @@ static int start_pattern_display(int exposureUs, int bitDepth, int ledSelect, in
     }
     printf("  LUT entry added: exposure=%dus, bitDepth=%d, LED=0x%X\n", exposureUs, bitDepth, ledSelect);
     
+    /*
+    if (LCR_OpenMailbox(2) < 0) {
+        printf("ERROR: Cannot open mailbox\n");
+        return -1;
+    }
+    
+    if (LCR_MailboxSetAddr(0) < 0) {
+        printf("ERROR: Cannot set mailbox address\n");
+        LCR_CloseMailbox();
+        return -1;
+    }
+    */
+
     if (LCR_SendPatLut() < 0) {
         printf("ERROR: Cannot send pattern LUT\n");
+        //LCR_CloseMailbox();
         return -1;
     }
     printf("  Pattern LUT sent\n");
+    
+    /* Close mailbox */
+    // LCR_CloseMailbox();
     
     if (LCR_SetPatternConfig(1, repeat) < 0) {
         printf("ERROR: Cannot set pattern config\n");
@@ -216,8 +216,8 @@ int cmd_load_bmp(void) {
     /* Step 5: Upload pattern data */
     if (upload_pattern_data(splash, splashSize) < 0) goto cleanup;
     
-    /* Step 6: Configure and start display */
-    if (start_pattern_display(10000000, 8, 7, 1) < 0) goto cleanup;
+    /* Step 6: Configure and start display (8-bit pattern, all LEDs, repeat) */
+    if (start_pattern_display(100000, 8, 7, 1) < 0) goto cleanup;
     
     printf("Image displayed on DMD!\n");
     result = 0;
