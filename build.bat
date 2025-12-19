@@ -6,6 +6,7 @@ gcc -o dlpc900_cli.exe ^
     src\cmd_status.c ^
     src\cmd_pattern.c ^
     src\cmd_image.c ^
+    src\cmd_connection.c ^
     lib\diagnosticFile.c ^
     lib\API.c ^
     lib\usb.c ^

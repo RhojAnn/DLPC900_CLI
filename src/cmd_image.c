@@ -1,6 +1,7 @@
 /*
  * cmd_image.c
  * BMP image loading and display commands for DLPC900
+ * CURRENTLY NOT WORKING. Feature may not be needed depending on the requirements
  */
 
 #include <stdio.h>
@@ -12,12 +13,6 @@
 #include "pattern.h"
 #include "splash.h"
 
-/* ========== Helper Functions (static = private to this file) ========== */
-
-/**
- * Load BMP file and convert to 24-bit if necessary
- * Splash format requires 24-bit RGB images
- */
 static Image_t* load_bmp_file(const char *filename) {
     Image_t imgInfo;
     Image_t *image = NULL;
@@ -99,9 +94,7 @@ static Image_t* load_bmp_file(const char *filename) {
     return image24;
 }
 
-/**
- * Convert Image_t to splash format (RLE compressed)
- */
+
 static int convert_to_splash(Image_t *image, uint08 **outSplash) {
     uint08 *splash = SPL_AllocSplash(image->Width, image->Height);
     if (!splash) {
@@ -121,9 +114,7 @@ static int convert_to_splash(Image_t *image, uint08 **outSplash) {
     return splashSize;
 }
 
-/**
- * Upload splash data to DMD pattern memory via USB
- */
+
 static int upload_pattern_data(uint08 *splash, int splashSize) {
     int offset, chunkSize;
     
@@ -147,9 +138,7 @@ static int upload_pattern_data(uint08 *splash, int splashSize) {
     return 0;
 }
 
-/**
- * Configure pattern LUT, validate, and start display
- */
+
 static int start_pattern_display(int exposureUs, int bitDepth, int ledSelect, int repeat) {
     LCR_ClearPatLut();
     
@@ -189,12 +178,7 @@ static int start_pattern_display(int exposureUs, int bitDepth, int ledSelect, in
     return 0;
 }
 
-/* ========== Public Command (declared in cmd.h) ========== */
-
-/**
- * Load a BMP image and display it on the DMD
- * Prompts user for filename, loads, converts, uploads, and displays
- */
+// Load BMP image and display on DMD
 int cmd_load_bmp(void) {
     char filename[256];
     Image_t *image = NULL;
@@ -220,7 +204,7 @@ int cmd_load_bmp(void) {
     
     /* Step 3: Switch to OTF mode and stop current pattern */
     if (cmd_otf() < 0) goto cleanup;
-    if (cmd_stop() < 0) goto cleanup;
+    if (cmd_clear_pattern() < 0) goto cleanup;
     
     /* Step 4: Enable LEDs */
     if (LCR_SetLedEnables(1, 1, 1, 1) < 0) {

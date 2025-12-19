@@ -18,14 +18,15 @@ void print_menu(void) {
     printf("\n");
     printf("  1. Get device status\n");
     printf("  2. Get firmware version\n");
-    printf("  3. Get current mode\n");
-    printf("  4. Run OTF pattern sequence\n");
-    printf("  5. Stop pattern display\n");
-    printf("  6. Switch to OTF mode\n");
-    printf("  7. Disable pattern mode\n");
-    printf("  8. Show TPG test pattern (checkerboard)\n");
-    printf("  9. Show solid color\n");
-    printf(" 10. Load BMP image to DMD\n");
+    printf("  3. Toggle idle mode (Recommended when DMD is not in use)\n");
+    printf("  4. Get current mode\n");
+    printf("  5. Run OTF pattern sequence\n");
+    printf("  6. Stop pattern display\n");
+    printf("  7. Switch to OTF mode\n");
+    printf("  8. Disable pattern mode\n");
+    printf("  9. Show TPG test pattern (checkerboard)\n");
+    printf(" 10. Show solid color\n");
+    printf(" 11. Load BMP image to DMD\n");
     printf("  0. Exit\n");
     printf("\n");
 }
@@ -54,16 +55,17 @@ int main(int argc, char *argv[]) {
         choice = atoi(input);
         
         switch (choice) {
-            case 1:  cmd_status();    break;
-            case 2:  cmd_version();   break;
-            case 3:  cmd_mode();      break;
-            case 4:  cmd_pattern();   break;
-            case 5:  cmd_stop();      break;
-            case 6:  cmd_otf();       break;
-            case 7:  cmd_disable();   break;
-            case 8:  cmd_tpg();       break;
-            case 9:  cmd_solid();     break;
-            case 10: cmd_load_bmp();  break;
+            case 1:  cmd_status();          break;
+            case 2:  cmd_version();         break;
+            case 3:  cmd_toggle_idle();     break;
+            case 4:  cmd_mode();            break;
+            case 5:  cmd_pattern();         break;
+            case 6:  cmd_clear_pattern();   break;
+            case 7:  cmd_otf();             break;
+            case 8:  cmd_disable();         break;
+            case 9:  cmd_tpg();             break;
+            case 10: cmd_solid();           break;
+            case 11: cmd_load_bmp();        break;
             case 0:
                 printf("Stopping and exiting...\n");
                 disconnect_device();

@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "usb.h"
 
 int connect_device(void) {
