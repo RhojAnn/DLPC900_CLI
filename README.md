@@ -1,19 +1,19 @@
 # DMD DLPC900
 
 ## ToDos (according to priority)
-- [ ] Check the following function for mirror control w/o LEDs: `LCR_GetDMDBlocks()`, `LCR_SetDMDBlocks()`
 - [ ] Make BMP image display into the screen
+- [ ] Make the working field be a sqaure
 - [ ] Make python wrapper for GUI
 - [ ] Ensure that DMD Communication Status isn't an hardware issue
 - [ ] Remove uncessary files to run DMD (Splash, compress but still undetermined)
     - Need to read up the use for these files
-- [ ] Add comments for functions
 
 ## Done
 - [x] Continue cleaning out code
 - [x] Test Communication Status
 - [x] Clean up main.c so that cmd functions are seperated according to its category
-
+- [x] Add comments for functions
+- [x] Check the following function for mirror control w/o LEDs: `LCR_GetDMDBlocks()`, `LCR_SetDMDBlocks()`
 
 ## How to run
 This software is only **Windows x64** system compatible 
@@ -74,10 +74,6 @@ commands**, default settings, and control **register bit definitions**.
 ## Notes
 - I'm pretty sure you can turn off the LEDs in all times using the `LCR_SetEnables(0, 0, 0, 0);` but have to check
     - Through this way, the mirrors could be manipulated via BMP images w/o LEDs turning on
-- (First idea) I believe you can manipulate the mirror control in using 2 ways:
-    1. BMP Images
-        - Using the values of white and black as 0 and 1s, we could angle the mirrors left and right
-    2. Using `LCR_GetDMDBlocks()`, `LCR_SetDMDBlocks()`
-        - Could use a struct, enum or both to construct subsections of the mirror
-- *or maybe one of the two from above. I think if there's a way to control the on and off in `LCR_GetDMDBlocks()`, `LCR_SetDMDBlocks()`, this would save some processing power*
-
+- Will be using BMP to control mirrors, now figure out how to turn the BMP into mirrors ON/OF controls
+- DMD Mirror Sketch
+<img src="mirror_sketch.jpeg" width="500">

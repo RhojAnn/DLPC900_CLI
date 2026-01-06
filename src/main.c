@@ -67,8 +67,7 @@ int main(int argc, char *argv[]) {
             case 8:  cmd_disable();         break;
             case 9:  cmd_tpg();             break;
             case 10: cmd_solid();           break;
-            case 11: cmd_otf();
-                     cmd_load_bmp();        break;
+            case 11: cmd_load_bmp();        break;
             case 0:
                 printf("Stopping and exiting...\n");
                 disconnect_device();
