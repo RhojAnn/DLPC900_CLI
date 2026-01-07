@@ -27,6 +27,9 @@ void print_menu(void) {
     printf("  9. Show TPG test pattern (checkerboard)\n");
     printf(" 10. Show solid color\n");
     printf(" 11. Load BMP image to DMD\n");
+    printf(" 12. Load half-tone BMP image to DMD\n");
+    printf(" 13. Load white BMP image to DMD\n");
+    printf(" 14. Load black BMP image to DMD\n");
     printf("  0. Exit\n");
     printf("\n");
 }
@@ -68,12 +71,24 @@ int main(int argc, char *argv[]) {
             case 9:  cmd_tpg();             break;
             case 10: cmd_solid();           break;
             case 11: cmd_load_bmp();        break;
+            case 12: 
+                cmd_clear_pattern();   
+                cmd_load_half();
+                break;
+            case 13: 
+                cmd_clear_pattern();   
+                cmd_load_white();
+                break;
+            case 14: 
+                cmd_clear_pattern();   
+                cmd_load_black();
+                break;
             case 0:
                 printf("Stopping and exiting...\n");
                 disconnect_device();
                 return 0;
             default:
-                printf("Invalid choice. Please enter 0-11.\n");
+                printf("Invalid choice. Please enter 0-14.\n");
                 break;
         }
     }

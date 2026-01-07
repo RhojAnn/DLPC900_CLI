@@ -64,40 +64,6 @@ int cmd_pattern_mode(void) {
     return 0;
 }
 
-// Maybe not needed
-int cmd_pattern(void) {
-    printf("Setting up pattern sequence...\n");
-    
-    cmd_otf();
-    
-    LCR_ClearPatLut();
-    
-    if (LCR_AddToPatLut(0, 1000000, 1, 8, 7, 0, 0, 0, 0, 0) < 0) {
-        printf("ERROR: Cannot add pattern to LUT\n");
-        return -1;
-    }
-    printf("  Added pattern to LUT\n");
-    
-    if (LCR_SendPatLut() < 0) {
-        printf("ERROR: Cannot send pattern LUT\n");
-        return -1;
-    }
-    printf("  Pattern LUT uploaded\n");
-    
-    if (LCR_SetPatternConfig(1, 1) < 0) {
-        printf("ERROR: Cannot set pattern config\n");
-        return -1;
-    }
-    
-    if (LCR_PatternDisplay(0x2) < 0) {
-        printf("ERROR: Cannot start pattern\n");
-        return -1;
-    }
-    printf("Pattern sequence STARTED\n");
-    
-    return 0;
-}
-
 /**
 * Stop current pattern sequence from running
 */
@@ -142,30 +108,3 @@ int cmd_tpg(void) {
     return 0;
 }
 
-/**
-* Test if pattern sequence works by generating a solid colour
-*/
-int cmd_solid(void) {
-    if (LCR_SetMode(PTN_MODE_DISABLE) < 0) {
-        printf("ERROR: Cannot disable pattern mode\n");
-        return -1;
-    }
-    
-    if (LCR_SetInputSource(1, 0) < 0) {
-        printf("ERROR: Cannot set input source\n");
-        return -1;
-    }
-    
-    if (LCR_SetTPGSelect(0) < 0) {
-        printf("ERROR: Cannot select solid pattern\n");
-        return -1;
-    }
-    
-    if (LCR_SetTPGColor(1023, 1023, 1023, 0, 0, 0) < 0) {
-        printf("ERROR: Cannot set TPG color\n");
-        return -1;
-    }
-    
-    printf("Solid black pattern displayed - all mirrors ON\n");
-    return 0;
-}
