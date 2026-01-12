@@ -266,6 +266,11 @@ int LCR_SetMemory(uint32 Address, uint32 Data, uint08 ToWhom);
 int LCR_GetDebugMask(uint32 *enable, uint08 *alloc, uint08 *used, BOOL *globalEnable);
 int LCR_SetDebugMask(uint32 enable, BOOL globalEnable);
 
+int LCR_OpenMailbox(int MboxNum);
+int LCR_CloseMailbox(void);
+int LCR_MailboxSetAddr(int Addr);
+
+
 #ifdef __cplusplus
 }
 #endif

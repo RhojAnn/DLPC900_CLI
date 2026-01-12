@@ -4,11 +4,10 @@
 #include <stdio.h>
 #include "usb.h"
 
-int connect_device(void) {
 /** 
  *   Establish USB connection to DLPC900 device
 */
-
+int connect_device(void) {
     if (USB_Init() != 0) {
         printf("ERROR: USB initialization failed\n");
         return -1;
@@ -24,11 +23,10 @@ int connect_device(void) {
     return 0;
 }
 
-void disconnect_device(void) {
 /*
 *   Close USB connection to DLPC900 device
 */
-
+void disconnect_device(void) {
     USB_Close();
     USB_Exit();
 }
