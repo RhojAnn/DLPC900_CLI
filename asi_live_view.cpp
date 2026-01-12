@@ -1,3 +1,4 @@
+#include <thread>
 #include <ASICamera2.h>
 #include <opencv2/opencv.hpp>
 #include <iostream>
@@ -56,6 +57,59 @@ bool cmd_stop_camera(int cameraID) {
     return (stopResult == ASI_SUCCESS && closeResult == ASI_SUCCESS);
 }
 
+// Handles video mode: gets and displays video frames
+void run_video_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
+    // int startRes = ASIStartVideoCapture(cameraID);
+    // std::cout << "ASIStartVideoCapture result: " << startRes << std::endl;
+    ASI_ERROR_CODE res = ASIGetVideoData(cameraID, frame.data, roiWidth * roiHeight, 1000);
+    if (res == ASI_SUCCESS) {
+        cv::imshow("ASI Camera Live", frame);
+    } else {
+        std::cout << "Failed to get video data. Return code: " << res << std::endl;
+    }
+   
+}
+
+// Handles snap mode: starts exposure, waits, displays, and saves single frame
+void run_snap_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
+    ASIStopVideoCapture(cameraID);
+    int startExpRes = ASIStartExposure(cameraID, ASI_FALSE);
+    std::cout << "ASIStartExposure result: " << startExpRes << std::endl;
+    ASI_EXPOSURE_STATUS status;
+    int pollCount = 0;
+    do {
+        ASIGetExpStatus(cameraID, &status);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        ++pollCount;
+        if (pollCount > 500) {
+            std::cout << "Exposure timeout." << std::endl;
+            ASIStopExposure(cameraID);
+            return;
+        }
+    } while (status == ASI_EXP_WORKING);
+    if (status == ASI_EXP_SUCCESS) {
+        int getDataRes = ASIGetDataAfterExp(cameraID, frame.data, roiWidth * roiHeight);
+        std::cout << "ASIGetDataAfterExp result: " << getDataRes << std::endl;
+        if (getDataRes == ASI_SUCCESS) {
+            cv::imshow("ASI Camera Live", frame);
+            // Simple save dialog: prompt in console for path
+            std::string savePath;
+            std::cout << "Enter file path to save image (or leave blank for snap_image.png): ";
+            std::getline(std::cin, savePath);
+            if (savePath.empty()) savePath = "snap_image.png";
+            if (cv::imwrite(savePath, frame)) {
+                std::cout << "Image saved to: " << savePath << std::endl;
+            } else {
+                std::cout << "Failed to save image!" << std::endl;
+            }
+        } else {
+            std::cout << "Failed to get snap image." << std::endl;
+        }
+    } else {
+        std::cout << "Exposure failed or cancelled." << std::endl;
+    }
+}
+
 int main() {
     std::cout << "asi_live_view: Starting program." << std::endl;
 
@@ -78,98 +132,24 @@ int main() {
     std::cout << "ASISetControlValue (GAIN) result: " << gainResult << std::endl;
 
     cv::Mat frame(roiHeight, roiWidth, CV_8UC1);
-    bool videoMode = true;
-    bool running = true;
-    std::cout << "Press 'v' for video mode, 's' for snap mode, ESC to exit." << std::endl;
-
-    /*
-    int startResult = ASIStartVideoCapture(cameraID);
-    std::cout << "ASIStartVideoCapture result: " << startResult << std::endl;
-
-    while (running) {
-        if (videoMode) {
-            int res = ASIGetVideoData(cameraID, frame.data, roiWidth * roiHeight, 1000);
-            if (res == ASI_SUCCESS) {
-                cv::imshow("ASI Camera Live", frame);
-            } else {
-                std::cout << "Failed to get video data." << std::endl;
-            }
-        } else {
-            // Snap mode: stop video, start exposure, poll status, get image
-            ASIStopVideoCapture(cameraID);
-            int startExpRes = ASIStartExposure(cameraID);
-            std::cout << "ASIStartExposure result: " << startExpRes << std::endl;
-            ASI_EXPOSURE_STATUS status;
-            int pollCount = 0;
-            do {
-                ASIGetExpStatus(cameraID, &status);
-                cv::waitKey(10); // Small delay
-                ++pollCount;
-                if (pollCount > 500) {
-                    std::cout << "Exposure timeout." << std::endl;
-                    ASIStopExposure(cameraID);
-                    break;
-                }
-            } while (status == ASI_EXP_WORKING);
-            if (status == ASI_EXP_SUCCESS) {
-                int getDataRes = ASIGetDataAfterExp(cameraID, frame.data, roiWidth * roiHeight);
-                std::cout << "ASIGetDataAfterExp result: " << getDataRes << std::endl;
-                if (getDataRes == ASI_SUCCESS) {
-                    cv::imshow("ASI Camera Live", frame);
-                } else {
-                    std::cout << "Failed to get snap image." << std::endl;
-                }
-            } else {
-                std::cout << "Exposure failed or cancelled." << std::endl;
+    std::string modeChoice;
+    std::cout << "Choose mode: [v]ideo or [s]nap? ";
+    std::getline(std::cin, modeChoice);
+    if (modeChoice == "s" || modeChoice == "S") {
+        run_snap_mode(cameraID, frame, roiWidth, roiHeight);
+    } else {
+        ASIStartVideoCapture(cameraID);
+        while (true) {
+            run_video_mode(cameraID, frame, roiWidth, roiHeight);
+            int key = cv::waitKey(1);
+            if (key == 27 || cv::getWindowProperty("ASI Camera Live", cv::WND_PROP_VISIBLE) < 1) {
+                break;
             }
         }
-        int key = cv::waitKey(1);
-        if (key == 27 || cv::getWindowProperty("ASI Camera Live", cv::WND_PROP_VISIBLE) < 1) {
-            running = false;
-        } else if (key == 'v' || key == 'V') {
-            if (!videoMode) {
-                int startRes = ASIStartVideoCapture(cameraID);
-                std::cout << "Switched to video mode. ASIStartVideoCapture result: " << startRes << std::endl;
-                videoMode = true;
-            }
-        } else if (key == 's' || key == 'S') {
-            if (videoMode) {
-                ASIStopVideoCapture(cameraID);
-                std::cout << "Switched to snap mode." << std::endl;
-                videoMode = false;
-            } else {
-                // In snap mode, start a new exposure on each 's' key press
-                int startExpRes = ASIStartExposure(cameraID);
-                std::cout << "Snap mode: ASIStartExposure result: " << startExpRes << std::endl;
-                ASI_EXPOSURE_STATUS status;
-                int pollCount = 0;
-                do {
-                    ASIGetExpStatus(cameraID, &status);
-                    cv::waitKey(10);
-                    ++pollCount;
-                    if (pollCount > 500) {
-                        std::cout << "Exposure timeout." << std::endl;
-                        ASIStopExposure(cameraID);
-                        break;
-                    }
-                } while (status == ASI_EXP_WORKING);
-                if (status == ASI_EXP_SUCCESS) {
-                    int getDataRes = ASIGetDataAfterExp(cameraID, frame.data, roiWidth * roiHeight);
-                    std::cout << "ASIGetDataAfterExp result: " << getDataRes << std::endl;
-                    if (getDataRes == ASI_SUCCESS) {
-                        cv::imshow("ASI Camera Live", frame);
-                    } else {
-                        std::cout << "Failed to get snap image." << std::endl;
-                    }
-                } else {
-                    std::cout << "Exposure failed or cancelled." << std::endl;
-                }
-            }
-        }
+        ASIStopVideoCapture(cameraID);
     }
 
     cmd_stop_camera(cameraID);
     std::cout << "asi_live_view: Exiting program." << std::endl;
     return 0;
-    */
 }

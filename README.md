@@ -1,8 +1,7 @@
 # DMD DLPC900
 
 ## ToDos (according to priority)
-- [ ] Make BMP image display into the screen
-- [ ] Make the working field be a sqaure
+- [ ] Control exposure and gain in camera
 - [ ] Make python wrapper for GUI
 - [ ] Ensure that DMD Communication Status isn't an hardware issue
 - [ ] Remove uncessary files to run DMD (Splash, compress but still undetermined)
@@ -14,6 +13,7 @@
 - [x] Clean up main.c so that cmd functions are seperated according to its category
 - [x] Add comments for functions
 - [x] Check the following function for mirror control w/o LEDs: `LCR_GetDMDBlocks()`, `LCR_SetDMDBlocks()`
+- [x] Make BMP image display into the screen
 
 ## How to run
 This software is only **Windows x64** system compatible 
