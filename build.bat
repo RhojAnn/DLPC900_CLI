@@ -31,15 +31,15 @@ if %ERRORLEVEL% EQU 0 (
     echo Build failed!
 )
 
-REM Build the OpenCV image viewer utility
-g++ -o show_image.exe show_image.cpp ^
-    -IOpenCV-MinGW-Build-OpenCV-4.5.5-x64/include ^
-    -LOpenCV-MinGW-Build-OpenCV-4.5.5-x64/x64/mingw/lib ^
-    -lopencv_core455 -lopencv_highgui455 -lopencv_imgproc455 -lopencv_imgcodecs455
-
-if %ERRORLEVEL% EQU 0 (
-    echo Build successful: show_image.exe
-    show_image.exe OpenCV_test.jpg
-) else (
-    echo Build failed: show_image.exe
-)
+:: Build the OpenCV image viewer utility
+:: g++ -o show_image.exe show_image.cpp ^
+::    -IOpenCV-MinGW-Build-OpenCV-4.5.5-x64/include ^
+::    -LOpenCV-MinGW-Build-OpenCV-4.5.5-x64/x64/mingw/lib ^
+::    -lopencv_core455 -lopencv_highgui455 -lopencv_imgproc455 -lopencv_imgcodecs455
+::
+:: if %ERRORLEVEL% EQU 0 (
+::    echo Build successful: show_image.exe
+::    show_image.exe OpenCV_test.jpg
+::) else (
+::    echo Build failed: show_image.exe
+::)

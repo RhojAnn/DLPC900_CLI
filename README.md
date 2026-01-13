@@ -2,6 +2,7 @@
 
 ## ToDos (according to priority)
 - [ ] Control exposure and gain in camera
+- [ ] Turn code into a dll file for python wrapper GUI
 - [ ] Make python wrapper for GUI
 - [ ] Ensure that DMD Communication Status isn't an hardware issue
 - [ ] Remove uncessary files to run DMD (Splash, compress but still undetermined)

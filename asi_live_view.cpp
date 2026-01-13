@@ -2,6 +2,8 @@
 #include <ASICamera2.h>
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <windows.h>
+#include <commdlg.h>
 
 // Initializes the camera and sets ROI
 bool cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight) {
@@ -49,16 +51,37 @@ bool cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight) {
 }
 
 // Stops the camera and closes it
-bool cmd_stop_camera(int cameraID) {
-    int stopResult = ASIStopVideoCapture(cameraID);
+ASI_ERROR_CODE cmd_stop_camera(int cameraID) {
+    ASI_ERROR_CODE stopResult = ASIStopVideoCapture(cameraID);
     std::cout << "ASIStopVideoCapture result: " << stopResult << std::endl;
-    int closeResult = ASICloseCamera(cameraID);
+    if(stopResult != ASI_SUCCESS) return static_cast<ASI_ERROR_CODE>(stopResult);
+        
+    ASI_ERROR_CODE closeResult = ASICloseCamera(cameraID);
     std::cout << "ASICloseCamera result: " << closeResult << std::endl;
-    return (stopResult == ASI_SUCCESS && closeResult == ASI_SUCCESS);
+    return closeResult;
+}
+
+// Shows a Save As dialog and returns the selected file path, or empty string if canceled
+std::string save_file(const char* defaultName = "snap_image.png") {
+    char szFile[MAX_PATH] = {0};
+    strncpy(szFile, defaultName, MAX_PATH - 1);
+    OPENFILENAMEA ofn = {0};
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = NULL;
+    ofn.lpstrFile = szFile;
+    ofn.nMaxFile = sizeof(szFile);
+    ofn.lpstrFilter = "PNG Files\0*.png\0All Files\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+    if (GetSaveFileNameA(&ofn)) {
+        return std::string(szFile);
+    } else {
+        return std::string();
+    }
 }
 
 // Handles video mode: gets and displays video frames
-void run_video_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
+void cmd_video_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
     // int startRes = ASIStartVideoCapture(cameraID);
     // std::cout << "ASIStartVideoCapture result: " << startRes << std::endl;
     ASI_ERROR_CODE res = ASIGetVideoData(cameraID, frame.data, roiWidth * roiHeight, 1000);
@@ -71,7 +94,7 @@ void run_video_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
 }
 
 // Handles snap mode: starts exposure, waits, displays, and saves single frame
-void run_snap_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
+void cmd_snap_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
     ASIStopVideoCapture(cameraID);
     int startExpRes = ASIStartExposure(cameraID, ASI_FALSE);
     std::cout << "ASIStartExposure result: " << startExpRes << std::endl;
@@ -92,22 +115,54 @@ void run_snap_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
         std::cout << "ASIGetDataAfterExp result: " << getDataRes << std::endl;
         if (getDataRes == ASI_SUCCESS) {
             cv::imshow("ASI Camera Live", frame);
-            // Simple save dialog: prompt in console for path
-            std::string savePath;
-            std::cout << "Enter file path to save image (or leave blank for snap_image.png): ";
-            std::getline(std::cin, savePath);
-            if (savePath.empty()) savePath = "snap_image.png";
+            // Use Windows Save As dialog
+            std::string savePath = save_file("snap_image.png");
+            if (savePath.empty()) {
+                std::cout << "Save dialog canceled. Using default: snap_image.png" << std::endl;
+                savePath = "snap_image.png";
+            }
             if (cv::imwrite(savePath, frame)) {
                 std::cout << "Image saved to: " << savePath << std::endl;
             } else {
-                std::cout << "Failed to save image!" << std::endl;
+                std::cout << "Failed to save image" << std::endl;
             }
         } else {
-            std::cout << "Failed to get snap image." << std::endl;
+            std::cout << "Failed to get snap image" << std::endl;
         }
     } else {
-        std::cout << "Exposure failed or cancelled." << std::endl;
+        std::cout << "Exposure failed or cancelled" << std::endl;
     }
+}
+
+
+/**
+ * Notes：(1) when setting to auto adjust(bAuto=ASI_TRUE)，the lValue should be the current value 
+(2) Automatic Exposure and Automatic Gain are only effective in Video mode (that is, when you get 
+the image by calling ASIGetVideoData), but not in Snap mode (that is, when you get the image by 
+using ASIGetDataAfterExp) 
+ */
+
+ /*
+return:
+ASI_SUCCESS : Operation is successful
+ASI_ERROR_CAMERA_CLOSED : camera didn't open
+ASI_ERROR_INVALID_ID  :no camera of this ID is connected or ID value is out of boundary
+ASI_ERROR_INVALID_CONTROL_TYPE, //invalid Control type
+ASI_ERROR_GENERAL_ERROR,//general error, eg: value is out of valid range; operate to camera hareware failed
+*/
+
+// Sets exposure controls
+ASI_ERROR_CODE cmd_set_exposure(int iCameraID, long lValue, ASI_BOOL bAuto) {
+    ASI_ERROR_CODE res = ASISetControlValue(iCameraID, ASI_EXPOSURE, lValue, bAuto);
+    std::cout << "ASISetControlValue (EXPOSURE) result: " << res << std::endl;
+    return res;
+}
+
+// Sets gain controls
+ASI_ERROR_CODE cmd_set_gain(int iCameraID, long lValue, ASI_BOOL bAuto) {
+    ASI_ERROR_CODE res = ASISetControlValue(iCameraID, ASI_GAIN, lValue, bAuto);
+    std::cout << "ASISetControlValue (GAIN) result: " << res << std::endl;
+    return res;
 }
 
 int main() {
@@ -126,21 +181,26 @@ int main() {
     std::cout << "ASISetStartPos result: " << startPosResult << std::endl;
 
 
-    int expResult = ASISetControlValue(cameraID, ASI_EXPOSURE, 10000, ASI_FALSE);
-    std::cout << "ASISetControlValue (EXPOSURE) result: " << expResult << std::endl;
-    int gainResult = ASISetControlValue(cameraID, ASI_GAIN, 100, ASI_FALSE);
-    std::cout << "ASISetControlValue (GAIN) result: " << gainResult << std::endl;
+    if(cmd_set_exposure(cameraID, 10000, ASI_FALSE) != ASI_SUCCESS) {
+        cmd_stop_camera(cameraID);
+        return 1;
+    }
+
+    if(cmd_set_gain(cameraID, 100, ASI_FALSE) != ASI_SUCCESS) {
+        cmd_stop_camera(cameraID);
+        return 1;
+    }
 
     cv::Mat frame(roiHeight, roiWidth, CV_8UC1);
     std::string modeChoice;
     std::cout << "Choose mode: [v]ideo or [s]nap? ";
     std::getline(std::cin, modeChoice);
     if (modeChoice == "s" || modeChoice == "S") {
-        run_snap_mode(cameraID, frame, roiWidth, roiHeight);
+        cmd_snap_mode(cameraID, frame, roiWidth, roiHeight);
     } else {
         ASIStartVideoCapture(cameraID);
         while (true) {
-            run_video_mode(cameraID, frame, roiWidth, roiHeight);
+            cmd_video_mode(cameraID, frame, roiWidth, roiHeight);
             int key = cv::waitKey(1);
             if (key == 27 || cv::getWindowProperty("ASI Camera Live", cv::WND_PROP_VISIBLE) < 1) {
                 break;

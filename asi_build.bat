@@ -1,7 +1,7 @@
 @echo off
 echo Building ASI Camera View...
 
-g++ -o asi_live_view.exe asi_live_view.cpp ^
+g++ -o asi_live_view.exe asi_live_view.cpp -lcomdlg32 ^
     -Iasi ^
     -IOpenCV-MinGW-Build-OpenCV-4.5.5-x64/include ^
     -Lasi ^
