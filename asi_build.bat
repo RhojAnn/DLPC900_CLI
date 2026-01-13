@@ -1,7 +1,10 @@
 @echo off
 echo Building ASI Camera View...
 
-g++ -o asi_view.exe asi_view.cpp -lcomdlg32 ^
+REM Create bin directory if it doesn't exist
+if not exist bin mkdir bin
+
+g++ -o bin\asi_view.exe asi\asi_view.cpp -lcomdlg32 ^
     -Iasi ^
     -IOpenCV-MinGW-Build-OpenCV-4.5.5-x64/include ^
     -Lasi ^
@@ -9,11 +12,14 @@ g++ -o asi_view.exe asi_view.cpp -lcomdlg32 ^
     -lASICamera2 ^
     -lopencv_core455 -lopencv_highgui455 -lopencv_imgproc455 -lopencv_imgcodecs455
 
+REM Copy only DLLs from lib/asi to bin/
+copy /Y lib\asi\*.dll bin\
+
 if %ERRORLEVEL% EQU 0 (
-    echo Build successful: asi_view.exe
+    echo Build successful: bin\asi_view.exe
     echo.
-    echo Running asi_view.exe...
-    asi_view.exe
+    echo Running bin\asi_view.exe...
+    bin\asi_view.exe
 ) else (
-    echo Build failed: asi_view.exe
+    echo Build failed: bin\asi_view.exe
 )

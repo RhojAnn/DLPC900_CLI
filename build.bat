@@ -1,8 +1,10 @@
 @echo off
 echo Building DLPC900 CLI...
 
+REM Create bin directory if it doesn't exist
+if not exist bin mkdir bin
 
-gcc -o dlpc900_cli.exe ^
+gcc -o bin\dlpc900_cli.exe ^
     src\main.c ^
     src\cmd_status.c ^
     src\cmd_pattern.c ^
@@ -26,7 +28,7 @@ if %ERRORLEVEL% EQU 0 (
     echo Build successful: dlpc900_cli.exe
     echo.
     echo Running dlpc900_cli.exe...
-    dlpc900_cli.exe
+    bin/dlpc900_cli.exe
 ) else (
     echo Build failed!
 )
