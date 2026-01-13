@@ -1,7 +1,7 @@
 @echo off
 echo Building ASI Camera View...
 
-REM Create bin directory if it doesn't exist
+:: Create bin directory if it doesn't exist
 if not exist bin mkdir bin
 
 g++ -o bin\asi_view.exe asi\asi_view.cpp -lcomdlg32 ^
@@ -12,7 +12,6 @@ g++ -o bin\asi_view.exe asi\asi_view.cpp -lcomdlg32 ^
     -lASICamera2 ^
     -lopencv_core455 -lopencv_highgui455 -lopencv_imgproc455 -lopencv_imgcodecs455
 
-REM Copy only DLLs from lib/asi to bin/
 copy /Y lib\asi\*.dll bin\
 
 if %ERRORLEVEL% EQU 0 (

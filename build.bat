@@ -1,7 +1,7 @@
 @echo off
 echo Building DLPC900 CLI...
 
-REM Create bin directory if it doesn't exist
+:: Create bin directory if it doesn't exist
 if not exist bin mkdir bin
 
 gcc -o bin\dlpc900_cli.exe ^
