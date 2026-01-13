@@ -52,6 +52,34 @@ int cmd_version(void) {
 }
 
 /**
+ * Gets the current power mode (standby or normal)
+ */
+int cmd_get_power_mode(void){
+    BOOL power_mode;
+    if(LCR_GetPowerMode(&power_mode) < 0){
+        printf("ERROR: Cannot get power mode\n");
+        return -1;
+    }
+    printf("Power mode: %s\n", power_mode ? "Standby" : "Normal");
+    return power_mode;
+}
+
+/**
+ * Gets the current standby delay in seconds
+ */
+static int get_standby_delay(){
+    unsigned char current_delay;
+    
+    if(LCR_GetStandbyDelaySec(&current_delay) < 0){
+        printf("ERROR: Cannot set standby delay\n");
+        return -1;
+    }
+
+    printf("Standby delay: %d seconds\n", current_delay);
+    return current_delay;
+}
+
+/**
  * Toggles the DMD saver mode (idle mode)
  */
 int cmd_toggle_idle(void){
@@ -70,5 +98,48 @@ int cmd_toggle_idle(void){
     }
 
     printf("DMD saver mode %s\n", new_mode ? "enabled" : "disabled");
+    return 0;
+}
+
+/**
+ * Set the DMD to standby mode
+ */
+int cmd_set_standby(void){
+    if(get_standby_delay() == -1){
+        printf("ERROR: Cannot get standby delay\n");
+        return -1;
+    }
+
+    if(get_standby_delay() > 0){
+        printf("ERROR: Already running standby mode\n");
+        return -1;
+    }
+
+    if(LCR_SetPowerMode(TRUE) < 0){
+        printf("ERROR: Cannot set to standby mode\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+/**
+ * Sets the DMD to normal mode
+ */
+int cmd_set_normal(void){
+    if(get_standby_delay() == -1){
+        printf("ERROR: Cannot get standby delay\n");
+        return -1;
+    }
+
+    if(get_standby_delay() > 0){
+        printf("ERROR: Running standby mode\n");
+        return -1;
+    }
+
+    if(LCR_SetPowerMode(FALSE) < 0){
+        printf("ERROR: Cannot set to normal mode\n");
+        return -1;
+    }
     return 0;
 }

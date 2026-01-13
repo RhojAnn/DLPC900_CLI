@@ -6,35 +6,35 @@
 #include <commdlg.h>
 
 // Initializes the camera and sets ROI
-bool cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight) {
+ASI_ERROR_CODE cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight) {
     int numCameras = ASIGetNumOfConnectedCameras();
     std::cout << "ASIGetNumOfConnectedCameras returned: " << numCameras << std::endl;
     if (numCameras <= 0) {
         std::cout << "No ZWO ASI cameras detected." << std::endl;
-        return false;
+        return ASI_ERROR_INVALID_INDEX;
     }
 
     ASI_CAMERA_INFO info;
-    int propResult = ASIGetCameraProperty(&info, 0);
+    ASI_ERROR_CODE propResult = ASIGetCameraProperty(&info, 0);
     std::cout << "ASIGetCameraProperty result: " << propResult << ", CameraID: " << info.CameraID << std::endl;
     cameraID = info.CameraID;
 
-    int openResult = ASIOpenCamera(cameraID);
+    ASI_ERROR_CODE openResult = ASIOpenCamera(cameraID);
     std::cout << "ASIOpenCamera result: " << openResult << std::endl;
     if (openResult != ASI_SUCCESS) {
         std::cout << "Failed to open camera." << std::endl;
-        return false;
+        return openResult;
     }
 
-    int initResult = ASIInitCamera(cameraID);
+    ASI_ERROR_CODE initResult = ASIInitCamera(cameraID);
     std::cout << "ASIInitCamera result: " << initResult << std::endl;
     if (initResult != ASI_SUCCESS) {
         std::cout << "Failed to initialize camera." << std::endl;
-        return false;
+        return initResult;
     }
 
     int numControls = 0;
-    int controlsResult = ASIGetNumOfControls(cameraID, &numControls);
+    ASI_ERROR_CODE controlsResult = ASIGetNumOfControls(cameraID, &numControls);
     std::cout << "ASIGetNumOfControls result: " << controlsResult << ", numControls: " << numControls << std::endl;
 
     ASI_CONTROL_CAPS caps;
@@ -45,9 +45,9 @@ bool cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight) {
     }
 
     int roiBin = 1;
-    int roiResult = ASISetROIFormat(cameraID, roiWidth, roiHeight, roiBin, ASI_IMG_RAW8);
+    ASI_ERROR_CODE roiResult = ASISetROIFormat(cameraID, roiWidth, roiHeight, roiBin, ASI_IMG_RAW8);
     std::cout << "ASISetROIFormat (" << roiWidth << "x" << roiHeight << ") result: " << roiResult << std::endl;
-    return true;
+    return roiResult;
 }
 
 // Stops the camera and closes it
@@ -171,8 +171,8 @@ int main() {
     int cameraID = 0;
     int roiWidth = 640;
     int roiHeight = 480;
-    if (!cmd_init_camera(cameraID, roiWidth, roiHeight)) {
-        std::cout << "Camera initialization failed." << std::endl;
+    if (cmd_init_camera(cameraID, roiWidth, roiHeight) != ASI_SUCCESS) {
+        std::cout << "Camera initialisation failed." << std::endl;
         return 1;
     }
 
