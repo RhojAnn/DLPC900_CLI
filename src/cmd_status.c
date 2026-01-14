@@ -52,19 +52,6 @@ int cmd_version(void) {
 }
 
 /**
- * Gets the current power mode (standby or normal)
- */
-int cmd_get_power_mode(void){
-    BOOL power_mode;
-    if(LCR_GetPowerMode(&power_mode) < 0){
-        printf("ERROR: Cannot get power mode\n");
-        return -1;
-    }
-    printf("Power mode: %s\n", power_mode ? "Standby" : "Normal");
-    return power_mode;
-}
-
-/**
  * Gets the current standby delay in seconds
  */
 static int get_standby_delay(void){
@@ -75,8 +62,22 @@ static int get_standby_delay(void){
         return -1;
     }
 
-    printf("Standby delay: %d seconds\n", current_delay);
+    // printf("Standby delay: %d seconds\n", current_delay);
     return current_delay;
+}
+
+
+/**
+ * Gets the current power mode (standby or normal)
+ */
+int cmd_get_power_mode(void){
+    if(get_standby_delay() == -1){
+        printf("ERROR: Cannot get standby delay\n");
+        return -1;
+    }
+
+    printf("Power mode: %s\n", get_standby_delay() == 37 ? "Standby" : "Normal");
+    return 0;
 }
 
 /**
