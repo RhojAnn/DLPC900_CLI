@@ -67,7 +67,7 @@ int cmd_get_power_mode(void){
 /**
  * Gets the current standby delay in seconds
  */
-static int get_standby_delay(){
+static int get_standby_delay(void){
     unsigned char current_delay;
     
     if(LCR_GetStandbyDelaySec(&current_delay) < 0){
@@ -110,7 +110,7 @@ int cmd_set_standby(void){
         return -1;
     }
 
-    if(get_standby_delay() > 0){
+    if(get_standby_delay() == 37){
         printf("ERROR: Already running standby mode\n");
         return -1;
     }
@@ -132,8 +132,8 @@ int cmd_set_normal(void){
         return -1;
     }
 
-    if(get_standby_delay() > 0){
-        printf("ERROR: Running standby mode\n");
+    if(get_standby_delay() == 37){
+        printf("ERROR: Running standby mode. Please wait.\n");
         return -1;
     }
 

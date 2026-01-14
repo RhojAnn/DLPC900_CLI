@@ -9,6 +9,9 @@ void disconnect_device(void);
 int cmd_status(void);
 int cmd_version(void);
 int cmd_toggle_idle(void);
+int cmd_get_power_mode(void);
+int cmd_set_standby(void);
+int cmd_set_normal(void);
 
 // Pattern commands (cmd_pattern.c)
 int cmd_otf(void);

@@ -21,6 +21,9 @@ void print_menu(void) {
     printf("  2. Get firmware version\n");
     printf("\nPower Commands\n");
     printf("  3. Toggle idle mode (Recommended when DMD is not in use)\n");
+    printf(" 13. Set standby mode\n");
+    printf(" 14. Set normal mode\n");
+    printf(" 15. Show power mode\n");
     printf("\nPattern Commands\n");
     printf("  4. Get current pattern mode\n");
     printf("  5. Switch to OTF mode\n");
@@ -49,6 +52,9 @@ int main(int argc, char *argv[]) {
     if (connect_device() != 0) 
         printf("\nRunning in disconnected mode (commands will fail)\n");
     
+
+    cmd_set_normal();
+
     while (1) {
         print_menu();
         printf("Enter choice: ");
@@ -83,12 +89,22 @@ int main(int argc, char *argv[]) {
                 cmd_clear_pattern();   
                 cmd_load_black();
                 break;
+            case 13:
+                cmd_set_standby();
+                break;
+            case 14:
+                cmd_set_normal();
+                break;
+            case 15:
+                cmd_get_power_mode();
+                break;
             case 0:
                 printf("Stopping and exiting...\n");
+                cmd_set_standby();
                 disconnect_device();
                 return 0;
             default:
-                printf("Invalid choice. Please enter 0-12.\n");
+                printf("Invalid choice. Please enter 0-15.\n");
                 break;
         }
     }

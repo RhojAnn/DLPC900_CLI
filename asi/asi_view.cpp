@@ -7,13 +7,8 @@
 
 // Initializes the camera and sets ROI
 ASI_ERROR_CODE cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight) {
-    int numCameras = ASIGetNumOfConnectedCameras();
-    std::cout << "ASIGetNumOfConnectedCameras returned: " << numCameras << std::endl;
-    if (numCameras <= 0) {
-        std::cout << "No ZWO ASI cameras detected." << std::endl;
-        return ASI_ERROR_INVALID_INDEX;
-    }
-
+    is_camera_connected();
+    
     ASI_CAMERA_INFO info;
     ASI_ERROR_CODE propResult = ASIGetCameraProperty(&info, 0);
     std::cout << "ASIGetCameraProperty result: " << propResult << ", CameraID: " << info.CameraID << std::endl;
@@ -48,6 +43,16 @@ ASI_ERROR_CODE cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight) {
     ASI_ERROR_CODE roiResult = ASISetROIFormat(cameraID, roiWidth, roiHeight, roiBin, ASI_IMG_RAW8);
     std::cout << "ASISetROIFormat (" << roiWidth << "x" << roiHeight << ") result: " << roiResult << std::endl;
     return roiResult;
+}
+
+ASI_ERROR_CODE is_camera_connected(){
+    int numCameras = ASIGetNumOfConnectedCameras();
+    std::cout << "ASIGetNumOfConnectedCameras returned: " << numCameras << std::endl;
+    if (numCameras <= 0) {
+        std::cout << "No ZWO ASI cameras detected." << std::endl;
+        return ASI_ERROR_INVALID_INDEX;
+    }
+    return ASI_SUCCESS;
 }
 
 // Stops the camera and closes it

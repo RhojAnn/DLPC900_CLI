@@ -28,7 +28,7 @@ if %ERRORLEVEL% EQU 0 (
     echo Build successful: dlpc900_cli.exe
     echo.
     echo Running dlpc900_cli.exe...
-    bin/dlpc900_cli.exe
+    bin\dlpc900_cli.exe
 ) else (
     echo Build failed!
 )
