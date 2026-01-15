@@ -66,18 +66,32 @@ static int get_standby_delay(void){
     return current_delay;
 }
 
-
 /**
  * Gets the current power mode (standby or normal)
  */
 int cmd_get_power_mode(void){
-    if(get_standby_delay() == -1){
-        printf("ERROR: Cannot get standby delay\n");
+    int is_idle = LCR_GetDMDSaverMode();
+
+    if(is_idle < 0){
+        printf("ERROR: Cannot get power mode\n");
         return -1;
+    } else if(is_idle == 1){
+        printf("Power mode: Idle (DMD saver mode enabled)\n");
+        return 0;
     }
 
-    printf("Power mode: %s\n", get_standby_delay() == 37 ? "Standby" : "Normal");
-    return 0;
+    int is_normal = get_standby_delay();
+
+    if(is_normal < 0){
+        printf("ERROR: Cannot get standby delay\n");
+        return -1;
+    } else if(is_normal != 37){
+        printf("Power mode: Normal\n");
+        return 0;
+    }
+
+    printf("Power mode: Standby\n");
+    return 1;
 }
 
 /**

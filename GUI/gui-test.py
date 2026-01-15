@@ -13,23 +13,25 @@ window.resizable(True, True)
 
 # Configure grid layout
 window.rowconfigure(0, weight=0)
-window.rowconfigure(1, weight=1)
-window.columnconfigure(0, weight=1, minsize=200) 
+window.rowconfigure(1, weight=2)
+window.rowconfigure(2, weight=2)
+window.rowconfigure(3, weight=2)
+window.columnconfigure(0, weight=0, minsize=200) 
 window.columnconfigure(1, weight=3)
 
 # Status panel
 status_panel = StatusPanel(window)
-status_panel.grid(row=0, column=0, sticky="nw", padx=5, pady=5)
+status_panel.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
 
 # Bottom left DMD controls
 dmd_controls = DMDControls(window)
-dmd_controls.grid(row=1, column=0, sticky="sw", padx=5, pady=5)
+dmd_controls.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
 
 
 # Video feed area
 video_panel = VideoPanel(window)
-video_panel.grid(row=0, column=1, rowspan=2, sticky="nsew")
+video_panel.grid(row=0, column=1, rowspan=3, sticky="nsew")
 
 
 # Function to maintain 1:1 aspect ratio for video_panel

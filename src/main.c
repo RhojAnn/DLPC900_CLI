@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
                 break;
             case 0:
                 printf("Stopping and exiting...\n");
-                cmd_set_standby();
+                // cmd_set_standby();
                 disconnect_device();
                 return 0;
             default:
