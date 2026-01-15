@@ -12,8 +12,14 @@ class DMDControls(tk.Frame):
         # Button grid for pattern selection
         self.label = tk.Label(self, text="Pattern Selection", font=("Arial", 11, "bold"))
         self.label.pack(anchor="sw", padx=5, pady=(15, 5))
-        
         self.create_button_grid(10, 10)
+
+        stop_btn = tk.Button(self, text="Stop Pattern", 
+                            command=self.stop_pattern, 
+                            bg="red", 
+                            fg="white",
+                            font=("Arial", 10))
+        stop_btn.pack(anchor="sw", padx=5, pady=5)
    
     def create_power_mode_section(self):
         self.label = tk.Label(self, text="Power Mode", font=("Arial", 11, "bold"))
@@ -54,3 +60,10 @@ class DMDControls(tk.Frame):
         # Select new button
         self.grid_buttons[(row, col)].config(bg='black', relief='sunken')
         self.selected_button = (row, col)
+
+    def stop_pattern(self):
+        # Deselect the currently selected button
+        if self.selected_button:
+            self.grid_buttons[self.selected_button].config(bg='SystemButtonFace', relief='raised')
+            self.selected_button = None
+        messagebox.showinfo("Pattern Stopped", "DMD pattern has been stopped.")
