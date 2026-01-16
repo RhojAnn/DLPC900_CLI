@@ -238,6 +238,42 @@ ASI_ERROR_CODE cmd_get_offset(int cameraID, long& lValue, ASI_BOOL& bAuto) {
     return res;
 }
 
+// Gets min/max exposure range (isMax=true for max, isMax=false for min)
+long cmd_get_exposure_range(int cameraID, bool isMax) {
+    ASI_CONTROL_CAPS caps;
+    int numControls = 0;
+    ASIGetNumOfControls(cameraID, &numControls);
+    
+    for (int i = 0; i < numControls; ++i) {
+        ASI_ERROR_CODE res = ASIGetControlCaps(cameraID, i, &caps);
+        if (res == ASI_SUCCESS && caps.ControlType == ASI_EXPOSURE) {
+            long value = isMax ? caps.MaxValue : caps.MinValue;
+            std::cout << "Exposure " << (isMax ? "Max" : "Min") << ": " << value << std::endl;
+            return value;
+        }
+    }
+    std::cout << "Failed to get exposure range." << std::endl;
+    return -1;
+}
+
+// Gets min/max gain range (isMax=true for max, isMax=false for min)
+long cmd_get_gain_range(int cameraID, bool isMax) {
+    ASI_CONTROL_CAPS caps;
+    int numControls = 0;
+    ASIGetNumOfControls(cameraID, &numControls);
+    
+    for (int i = 0; i < numControls; ++i) {
+        ASI_ERROR_CODE res = ASIGetControlCaps(cameraID, i, &caps);
+        if (res == ASI_SUCCESS && caps.ControlType == ASI_GAIN) {
+            long value = isMax ? caps.MaxValue : caps.MinValue;
+            std::cout << "Gain " << (isMax ? "Max" : "Min") << ": " << value << std::endl;
+            return value;
+        }
+    }
+    std::cout << "Failed to get gain range." << std::endl;
+    return -1;
+}
+
 
 int main() {
     std::cout << "asi_live_view: Starting program." << std::endl;
