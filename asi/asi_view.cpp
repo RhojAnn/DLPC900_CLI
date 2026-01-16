@@ -5,8 +5,47 @@
 #include <windows.h>
 #include <commdlg.h>
 
+// TODO: Document functions aka multi-line comments them
+
+ASI_ERROR_CODE is_camera_connected(){
+    int numCameras = ASIGetNumOfConnectedCameras();
+    std::cout << "ASIGetNumOfConnectedCameras returned: " << numCameras << std::endl;
+    if (numCameras <= 0) {
+        std::cout << "No ZWO ASI cameras detected." << std::endl;
+        return ASI_ERROR_INVALID_INDEX;
+    }
+    return ASI_SUCCESS;
+}
+
+ASI_ERROR_CODE cmd_set_pos(int cameraID, int startX, int startY) {
+    ASI_ERROR_CODE res = ASISetStartPos(cameraID, startX, startY);
+    std::cout << "ASISetStartPos (" << startX << "," << startY << ") result: " << res << std::endl;
+    return res;
+}
+
+// Gets current ROI start position
+ASI_ERROR_CODE cmd_get_pos(int cameraID, int& startX, int& startY) {
+    ASI_ERROR_CODE res = ASIGetStartPos(cameraID, &startX, &startY);
+    std::cout << "ASIGetStartPos: X=" << startX << ", Y=" << startY << " (result: " << res << ")" << std::endl;
+    return res;
+}
+
+// Sets ROI format
+ASI_ERROR_CODE cmd_set_ROI(int cameraID, int roiWidth, int roiHeight, int roiBin, ASI_IMG_TYPE imgType) {
+    ASI_ERROR_CODE res = ASISetROIFormat(cameraID, roiWidth, roiHeight, roiBin, imgType);
+    std::cout << "ASISetROIFormat (" << roiWidth << "x" << roiHeight << ") result: " << res << std::endl;
+    return res;
+}
+
+// Gets current ROI format
+ASI_ERROR_CODE cmd_get_ROI(int cameraID, int& roiWidth, int& roiHeight, int& roiBin, ASI_IMG_TYPE& imgType) {
+    ASI_ERROR_CODE res = ASIGetROIFormat(cameraID, &roiWidth, &roiHeight, &roiBin, &imgType);
+    std::cout << "ASIGetROIFormat: " << roiWidth << "x" << roiHeight << ", Bin=" << roiBin << ", ImgType=" << imgType << " (result: " << res << ")" << std::endl;
+    return res;
+}
+
 // Initializes the camera and sets ROI
-ASI_ERROR_CODE cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight) {
+ASI_ERROR_CODE cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight, int& roiBin, ASI_IMG_TYPE& imgType) {
     is_camera_connected();
     
     ASI_CAMERA_INFO info;
@@ -39,18 +78,19 @@ ASI_ERROR_CODE cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight) {
                   << ", Name=" << caps.Name << ", Min=" << caps.MinValue << ", Max=" << caps.MaxValue << std::endl;
     }
 
-    int roiBin = 1;
-    ASI_ERROR_CODE roiResult = ASISetROIFormat(cameraID, roiWidth, roiHeight, roiBin, ASI_IMG_RAW8);
-    std::cout << "ASISetROIFormat (" << roiWidth << "x" << roiHeight << ") result: " << roiResult << std::endl;
-    return roiResult;
-}
+    int roiResult = cmd_set_ROI(cameraID, roiWidth, roiHeight, roiBin, imgType);
+    if (roiResult != ASI_SUCCESS) {
+        std::cout << "Failed to set ROI." << std::endl;
+        return initResult;
+    }
 
-ASI_ERROR_CODE is_camera_connected(){
-    int numCameras = ASIGetNumOfConnectedCameras();
-    std::cout << "ASIGetNumOfConnectedCameras returned: " << numCameras << std::endl;
-    if (numCameras <= 0) {
-        std::cout << "No ZWO ASI cameras detected." << std::endl;
-        return ASI_ERROR_INVALID_INDEX;
+    int centerX = (8288 - roiWidth) / 2;
+    int centerY = (5644 - roiHeight) / 2;
+
+    int posResult = cmd_set_pos(cameraID, centerX, centerY);
+    if (posResult != ASI_SUCCESS) {
+        std::cout << "Failed to set position." << std::endl;
+        return initResult;
     }
     return ASI_SUCCESS;
 }
@@ -157,18 +197,47 @@ ASI_ERROR_GENERAL_ERROR,//general error, eg: value is out of valid range; operat
 */
 
 // Sets exposure controls
-ASI_ERROR_CODE cmd_set_exposure(int iCameraID, long lValue, ASI_BOOL bAuto) {
-    ASI_ERROR_CODE res = ASISetControlValue(iCameraID, ASI_EXPOSURE, lValue, bAuto);
+ASI_ERROR_CODE cmd_set_exposure(int cameraID, long lValue, ASI_BOOL bAuto) {
+    ASI_ERROR_CODE res = ASISetControlValue(cameraID, ASI_EXPOSURE, lValue, bAuto);
     std::cout << "ASISetControlValue (EXPOSURE) result: " << res << std::endl;
     return res;
 }
 
 // Sets gain controls
-ASI_ERROR_CODE cmd_set_gain(int iCameraID, long lValue, ASI_BOOL bAuto) {
-    ASI_ERROR_CODE res = ASISetControlValue(iCameraID, ASI_GAIN, lValue, bAuto);
+ASI_ERROR_CODE cmd_set_gain(int cameraID, long lValue, ASI_BOOL bAuto) {
+    ASI_ERROR_CODE res = ASISetControlValue(cameraID, ASI_GAIN, lValue, bAuto);
     std::cout << "ASISetControlValue (GAIN) result: " << res << std::endl;
     return res;
 }
+
+// Sets offset controls
+ASI_ERROR_CODE cmd_set_offset(int cameraID, long lValue, ASI_BOOL bAuto) {
+    ASI_ERROR_CODE res = ASISetControlValue(cameraID, ASI_OFFSET, lValue, bAuto);
+    std::cout << "ASISetControlValue (OFFSET) result: " << res << std::endl;
+    return res;
+}
+
+// Gets current exposure value
+ASI_ERROR_CODE cmd_get_exposure(int cameraID, long& lValue, ASI_BOOL& bAuto) {
+    ASI_ERROR_CODE res = ASIGetControlValue(cameraID, ASI_EXPOSURE, &lValue, &bAuto);
+    std::cout << "ASIGetControlValue (EXPOSURE): Value=" << lValue << ", Auto=" << bAuto << " (result: " << res << ")" << std::endl;
+    return res;
+}
+
+// Gets current gain value
+ASI_ERROR_CODE cmd_get_gain(int cameraID, long& lValue, ASI_BOOL& bAuto) {
+    ASI_ERROR_CODE res = ASIGetControlValue(cameraID, ASI_GAIN, &lValue, &bAuto);
+    std::cout << "ASIGetControlValue (GAIN): Value=" << lValue << ", Auto=" << bAuto << " (result: " << res << ")" << std::endl;
+    return res;
+}
+
+// Gets current offset value
+ASI_ERROR_CODE cmd_get_offset(int cameraID, long& lValue, ASI_BOOL& bAuto) {
+    ASI_ERROR_CODE res = ASIGetControlValue(cameraID, ASI_OFFSET, &lValue, &bAuto);
+    std::cout << "ASIGetControlValue (OFFSET): Value=" << lValue << ", Auto=" << bAuto << " (result: " << res << ")" << std::endl;
+    return res;
+}
+
 
 int main() {
     std::cout << "asi_live_view: Starting program." << std::endl;
@@ -176,22 +245,21 @@ int main() {
     int cameraID = 0;
     int roiWidth = 640;
     int roiHeight = 480;
-    if (cmd_init_camera(cameraID, roiWidth, roiHeight) != ASI_SUCCESS) {
+    int roiBin = 1;
+    ASI_IMG_TYPE imgType = ASI_IMG_Y8;
+
+    if (cmd_init_camera(cameraID, roiWidth, roiHeight, roiBin, imgType) != ASI_SUCCESS) {
         std::cout << "Camera initialisation failed." << std::endl;
         return 1;
     }
 
-    // Set ROI start position
-    int startPosResult = ASISetStartPos(cameraID, 0, 0);
-    std::cout << "ASISetStartPos result: " << startPosResult << std::endl;
 
-
-    if(cmd_set_exposure(cameraID, 10000, ASI_FALSE) != ASI_SUCCESS) {
+    if(cmd_set_exposure(cameraID, 100, ASI_FALSE) != ASI_SUCCESS) {
         cmd_stop_camera(cameraID);
         return 1;
     }
 
-    if(cmd_set_gain(cameraID, 100, ASI_FALSE) != ASI_SUCCESS) {
+    if(cmd_set_gain(cameraID, 200, ASI_FALSE) != ASI_SUCCESS) {
         cmd_stop_camera(cameraID);
         return 1;
     }
