@@ -77,7 +77,7 @@ ASI_ERROR_CODE cam_init_camera(int& cameraID, int& roiWidth, int& roiHeight, int
     int roiResult = cam_set_ROI(cameraID, roiWidth, roiHeight, roiBin, imgType);
     if (roiResult != ASI_SUCCESS) {
         std::cout << "Failed to set ROI." << std::endl;
-        return initResult;
+        return roiResult;
     }
 
     int centerX = (8288 - roiWidth) / 2;
@@ -86,7 +86,7 @@ ASI_ERROR_CODE cam_init_camera(int& cameraID, int& roiWidth, int& roiHeight, int
     int posResult = cam_set_pos(cameraID, centerX, centerY);
     if (posResult != ASI_SUCCESS) {
         std::cout << "Failed to set position." << std::endl;
-        return initResult;
+        return posResult;
     }
     return ASI_SUCCESS;
 }
@@ -102,6 +102,8 @@ ASI_ERROR_CODE cam_stop_camera(int cameraID) {
 }
 
 // Gets frame from camera
+// Note: This function is also in asi_view.cpp for the standalone viewer.
+// This library version is used for DLL compilation without the main() function.
 int cam_get_frame(int cameraID, unsigned char* buffer, int bufferSize, int waitMs) {
     return ASIGetVideoData(cameraID, buffer, bufferSize, waitMs);
 }

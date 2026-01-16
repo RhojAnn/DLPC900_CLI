@@ -6,7 +6,7 @@
 - [x] Make python wrapper for GUI (ASI Camera - initial implementation)
 - [ ] Make python wrapper for DMD (similar to ASI Camera approach)
 - [ ] Ensure that DMD Communication Status isn't an hardware issue
-- [ ] Remove uncessary files to run DMD (Splash, compress but still undetermined)
+- [ ] Remove unnecessary files to run DMD (Splash, compress but still undetermined)
     - Need to read up the use for these files
 
 ## Done

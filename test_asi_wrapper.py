@@ -109,6 +109,9 @@ class ASICameraWrapper:
             return None
         
         # Create buffer for the frame
+        # For Y8 (8-bit monochrome), buffer size is width * height
+        # For RGB24, it would be width * height * 3
+        # Currently hardcoded for Y8, but can be extended
         buffer_size = self.roi_width * self.roi_height
         buffer = (ctypes.c_ubyte * buffer_size)()
         
