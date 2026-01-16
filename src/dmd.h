@@ -2,8 +2,9 @@
 #define CMD_H
 
 // Connection commands (cmd_connection.c)
-int connect_device(void);
-void disconnect_device(void);
+int is_dmd_connected(void);
+int dmd_connect(void);
+int dmd_disconnect(void);
 
 // Status commands (cmd_status.c)
 int dmd_status(void);

@@ -35,7 +35,8 @@ int dmd_connect(void) {
 /*
 *   Close USB connection to DLPC900 device
 */
-void dmd_disconnect(void) {
+int dmd_disconnect(void) {
     USB_Close();
     USB_Exit();
+    return 0;
 }
