@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <commdlg.h>
 
-// TODO: Document functions aka multi-line comments them
+// Library functions for ASI camera - these are the same as asi_view.cpp but without main()
 
 ASI_ERROR_CODE is_camera_connected(){
     int numCameras = ASIGetNumOfConnectedCameras();
@@ -23,28 +23,24 @@ ASI_ERROR_CODE cam_set_pos(int cameraID, int startX, int startY) {
     return res;
 }
 
-// Gets current ROI start position
 ASI_ERROR_CODE cam_get_pos(int cameraID, int& startX, int& startY) {
     ASI_ERROR_CODE res = ASIGetStartPos(cameraID, &startX, &startY);
     std::cout << "ASIGetStartPos: X=" << startX << ", Y=" << startY << " (result: " << res << ")" << std::endl;
     return res;
 }
 
-// Sets ROI format
 ASI_ERROR_CODE cam_set_ROI(int cameraID, int roiWidth, int roiHeight, int roiBin, ASI_IMG_TYPE imgType) {
     ASI_ERROR_CODE res = ASISetROIFormat(cameraID, roiWidth, roiHeight, roiBin, imgType);
     std::cout << "ASISetROIFormat (" << roiWidth << "x" << roiHeight << ") result: " << res << std::endl;
     return res;
 }
 
-// Gets current ROI format
 ASI_ERROR_CODE cam_get_ROI(int cameraID, int& roiWidth, int& roiHeight, int& roiBin, ASI_IMG_TYPE& imgType) {
     ASI_ERROR_CODE res = ASIGetROIFormat(cameraID, &roiWidth, &roiHeight, &roiBin, &imgType);
     std::cout << "ASIGetROIFormat: " << roiWidth << "x" << roiHeight << ", Bin=" << roiBin << ", ImgType=" << imgType << " (result: " << res << ")" << std::endl;
     return res;
 }
 
-// Initializes the camera and sets ROI
 ASI_ERROR_CODE cam_init_camera(int& cameraID, int& roiWidth, int& roiHeight, int& roiBin, ASI_IMG_TYPE& imgType) {
     is_camera_connected();
     
@@ -95,7 +91,6 @@ ASI_ERROR_CODE cam_init_camera(int& cameraID, int& roiWidth, int& roiHeight, int
     return ASI_SUCCESS;
 }
 
-// Stops the camera and closes it
 ASI_ERROR_CODE cam_stop_camera(int cameraID) {
     ASI_ERROR_CODE stopResult = ASIStopVideoCapture(cameraID);
     std::cout << "ASIStopVideoCapture result: " << stopResult << std::endl;
@@ -106,144 +101,47 @@ ASI_ERROR_CODE cam_stop_camera(int cameraID) {
     return closeResult;
 }
 
-// Shows a Save As dialog and returns the selected file path, or empty string if canceled
-std::string save_file(const char* defaultName = "snap_image.png") {
-    char szFile[MAX_PATH] = {0};
-    strncpy(szFile, defaultName, MAX_PATH - 1);
-    OPENFILENAMEA ofn = {0};
-    ofn.lStructSize = sizeof(ofn);
-    ofn.hwndOwner = NULL;
-    ofn.lpstrFile = szFile;
-    ofn.nMaxFile = sizeof(szFile);
-    ofn.lpstrFilter = "PNG Files\0*.png\0All Files\0*.*\0";
-    ofn.nFilterIndex = 1;
-    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
-    if (GetSaveFileNameA(&ofn)) {
-        return std::string(szFile);
-    } else {
-        return std::string();
-    }
-}
-
 // Gets frame from camera
 int cam_get_frame(int cameraID, unsigned char* buffer, int bufferSize, int waitMs) {
     return ASIGetVideoData(cameraID, buffer, bufferSize, waitMs);
 }
 
-// Handles video mode: gets and displays video frames
-void cam_video_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
-    // int startRes = ASIStartVideoCapture(cameraID);
-    // std::cout << "ASIStartVideoCapture result: " << startRes << std::endl;
-    ASI_ERROR_CODE res = ASIGetVideoData(cameraID, frame.data, roiWidth * roiHeight, 1000);
-    if (res == ASI_SUCCESS) {
-        cv::imshow("ASI Camera Live", frame);
-    } else {
-        std::cout << "Failed to get video data. Return code: " << res << std::endl;
-    }
-   
-}
-
-// Handles snap mode: starts exposure, waits, displays, and saves single frame
-void cam_snap_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
-    ASIStopVideoCapture(cameraID);
-    int startExpRes = ASIStartExposure(cameraID, ASI_FALSE);
-    std::cout << "ASIStartExposure result: " << startExpRes << std::endl;
-    ASI_EXPOSURE_STATUS status;
-    int pollCount = 0;
-    do {
-        ASIGetExpStatus(cameraID, &status);
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        ++pollCount;
-        if (pollCount > 500) {
-            std::cout << "Exposure timeout." << std::endl;
-            ASIStopExposure(cameraID);
-            return;
-        }
-    } while (status == ASI_EXP_WORKING);
-    if (status == ASI_EXP_SUCCESS) {
-        int getDataRes = ASIGetDataAfterExp(cameraID, frame.data, roiWidth * roiHeight);
-        std::cout << "ASIGetDataAfterExp result: " << getDataRes << std::endl;
-        if (getDataRes == ASI_SUCCESS) {
-            cv::imshow("ASI Camera Live", frame);
-            // Use Windows Save As dialog
-            std::string savePath = save_file("snap_image.png");
-            if (savePath.empty()) {
-                std::cout << "Save dialog canceled. Using default: snap_image.png" << std::endl;
-                savePath = "snap_image.png";
-            }
-            if (cv::imwrite(savePath, frame)) {
-                std::cout << "Image saved to: " << savePath << std::endl;
-            } else {
-                std::cout << "Failed to save image" << std::endl;
-            }
-        } else {
-            std::cout << "Failed to get snap image" << std::endl;
-        }
-    } else {
-        std::cout << "Exposure failed or cancelled" << std::endl;
-    }
-}
-
-
-/**
- * Notes：(1) when setting to auto adjust(bAuto=ASI_TRUE)，the lValue should be the current value 
-(2) Automatic Exposure and Automatic Gain are only effective in Video mode (that is, when you get 
-the image by calling ASIGetVideoData), but not in Snap mode (that is, when you get the image by 
-using ASIGetDataAfterExp) 
- */
-
- /*
-return:
-ASI_SUCCESS : Operation is successful
-ASI_ERROR_CAMERA_CLOSED : camera didn't open
-ASI_ERROR_INVALID_ID  :no camera of this ID is connected or ID value is out of boundary
-ASI_ERROR_INVALID_CONTROL_TYPE, //invalid Control type
-ASI_ERROR_GENERAL_ERROR,//general error, eg: value is out of valid range; operate to camera hareware failed
-*/
-
-// Sets exposure controls
 ASI_ERROR_CODE cam_set_exposure(int cameraID, long lValue, ASI_BOOL bAuto) {
     ASI_ERROR_CODE res = ASISetControlValue(cameraID, ASI_EXPOSURE, lValue, bAuto);
     std::cout << "ASISetControlValue (EXPOSURE) result: " << res << std::endl;
     return res;
 }
 
-// Sets gain controls
 ASI_ERROR_CODE cam_set_gain(int cameraID, long lValue, ASI_BOOL bAuto) {
     ASI_ERROR_CODE res = ASISetControlValue(cameraID, ASI_GAIN, lValue, bAuto);
     std::cout << "ASISetControlValue (GAIN) result: " << res << std::endl;
     return res;
 }
 
-// Sets offset controls
 ASI_ERROR_CODE cam_set_offset(int cameraID, long lValue, ASI_BOOL bAuto) {
     ASI_ERROR_CODE res = ASISetControlValue(cameraID, ASI_OFFSET, lValue, bAuto);
     std::cout << "ASISetControlValue (OFFSET) result: " << res << std::endl;
     return res;
 }
 
-// Gets current exposure value
 ASI_ERROR_CODE cam_get_exposure(int cameraID, long& lValue, ASI_BOOL& bAuto) {
     ASI_ERROR_CODE res = ASIGetControlValue(cameraID, ASI_EXPOSURE, &lValue, &bAuto);
     std::cout << "ASIGetControlValue (EXPOSURE): Value=" << lValue << ", Auto=" << bAuto << " (result: " << res << ")" << std::endl;
     return res;
 }
 
-// Gets current gain value
 ASI_ERROR_CODE cam_get_gain(int cameraID, long& lValue, ASI_BOOL& bAuto) {
     ASI_ERROR_CODE res = ASIGetControlValue(cameraID, ASI_GAIN, &lValue, &bAuto);
     std::cout << "ASIGetControlValue (GAIN): Value=" << lValue << ", Auto=" << bAuto << " (result: " << res << ")" << std::endl;
     return res;
 }
 
-// Gets current offset value
 ASI_ERROR_CODE cam_get_offset(int cameraID, long& lValue, ASI_BOOL& bAuto) {
     ASI_ERROR_CODE res = ASIGetControlValue(cameraID, ASI_OFFSET, &lValue, &bAuto);
     std::cout << "ASIGetControlValue (OFFSET): Value=" << lValue << ", Auto=" << bAuto << " (result: " << res << ")" << std::endl;
     return res;
 }
 
-// Gets min/max exposure range (isMax=true for max, isMax=false for min)
 long cam_get_exposure_range(int cameraID, bool isMax) {
     ASI_CONTROL_CAPS caps;
     int numControls = 0;
@@ -261,7 +159,6 @@ long cam_get_exposure_range(int cameraID, bool isMax) {
     return -1;
 }
 
-// Gets min/max gain range (isMax=true for max, isMax=false for min)
 long cam_get_gain_range(int cameraID, bool isMax) {
     ASI_CONTROL_CAPS caps;
     int numControls = 0;
@@ -277,53 +174,4 @@ long cam_get_gain_range(int cameraID, bool isMax) {
     }
     std::cout << "Failed to get gain range." << std::endl;
     return -1;
-}
-
-
-int main() {
-    std::cout << "asi_live_view: Starting program." << std::endl;
-
-    int cameraID = 0;
-    int roiWidth = 640;
-    int roiHeight = 480;
-    int roiBin = 1;
-    ASI_IMG_TYPE imgType = ASI_IMG_Y8;
-
-    if (cam_init_camera(cameraID, roiWidth, roiHeight, roiBin, imgType) != ASI_SUCCESS) {
-        std::cout << "Camera initialisation failed." << std::endl;
-        return 1;
-    }
-
-
-    if(cam_set_exposure(cameraID, 100, ASI_FALSE) != ASI_SUCCESS) {
-        cam_stop_camera(cameraID);
-        return 1;
-    }
-
-    if(cam_set_gain(cameraID, 200, ASI_FALSE) != ASI_SUCCESS) {
-        cam_stop_camera(cameraID);
-        return 1;
-    }
-
-    cv::Mat frame(roiHeight, roiWidth, CV_8UC1);
-    std::string modeChoice;
-    std::cout << "Choose mode: [v]ideo or [s]nap? ";
-    std::getline(std::cin, modeChoice);
-    if (modeChoice == "s" || modeChoice == "S") {
-        cam_snap_mode(cameraID, frame, roiWidth, roiHeight);
-    } else {
-        ASIStartVideoCapture(cameraID);
-        while (true) {
-            cam_video_mode(cameraID, frame, roiWidth, roiHeight);
-            int key = cv::waitKey(1);
-            if (key == 27 || cv::getWindowProperty("ASI Camera Live", cv::WND_PROP_VISIBLE) < 1) {
-                break;
-            }
-        }
-        ASIStopVideoCapture(cameraID);
-    }
-
-    cam_stop_camera(cameraID);
-    std::cout << "asi_live_view: Exiting program." << std::endl;
-    return 0;
 }
