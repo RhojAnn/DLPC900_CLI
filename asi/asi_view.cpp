@@ -17,35 +17,35 @@ ASI_ERROR_CODE is_camera_connected(){
     return ASI_SUCCESS;
 }
 
-ASI_ERROR_CODE cmd_set_pos(int cameraID, int startX, int startY) {
+ASI_ERROR_CODE cam_set_pos(int cameraID, int startX, int startY) {
     ASI_ERROR_CODE res = ASISetStartPos(cameraID, startX, startY);
     std::cout << "ASISetStartPos (" << startX << "," << startY << ") result: " << res << std::endl;
     return res;
 }
 
 // Gets current ROI start position
-ASI_ERROR_CODE cmd_get_pos(int cameraID, int& startX, int& startY) {
+ASI_ERROR_CODE cam_get_pos(int cameraID, int& startX, int& startY) {
     ASI_ERROR_CODE res = ASIGetStartPos(cameraID, &startX, &startY);
     std::cout << "ASIGetStartPos: X=" << startX << ", Y=" << startY << " (result: " << res << ")" << std::endl;
     return res;
 }
 
 // Sets ROI format
-ASI_ERROR_CODE cmd_set_ROI(int cameraID, int roiWidth, int roiHeight, int roiBin, ASI_IMG_TYPE imgType) {
+ASI_ERROR_CODE cam_set_ROI(int cameraID, int roiWidth, int roiHeight, int roiBin, ASI_IMG_TYPE imgType) {
     ASI_ERROR_CODE res = ASISetROIFormat(cameraID, roiWidth, roiHeight, roiBin, imgType);
     std::cout << "ASISetROIFormat (" << roiWidth << "x" << roiHeight << ") result: " << res << std::endl;
     return res;
 }
 
 // Gets current ROI format
-ASI_ERROR_CODE cmd_get_ROI(int cameraID, int& roiWidth, int& roiHeight, int& roiBin, ASI_IMG_TYPE& imgType) {
+ASI_ERROR_CODE cam_get_ROI(int cameraID, int& roiWidth, int& roiHeight, int& roiBin, ASI_IMG_TYPE& imgType) {
     ASI_ERROR_CODE res = ASIGetROIFormat(cameraID, &roiWidth, &roiHeight, &roiBin, &imgType);
     std::cout << "ASIGetROIFormat: " << roiWidth << "x" << roiHeight << ", Bin=" << roiBin << ", ImgType=" << imgType << " (result: " << res << ")" << std::endl;
     return res;
 }
 
 // Initializes the camera and sets ROI
-ASI_ERROR_CODE cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight, int& roiBin, ASI_IMG_TYPE& imgType) {
+ASI_ERROR_CODE cam_init_camera(int& cameraID, int& roiWidth, int& roiHeight, int& roiBin, ASI_IMG_TYPE& imgType) {
     is_camera_connected();
     
     ASI_CAMERA_INFO info;
@@ -78,7 +78,7 @@ ASI_ERROR_CODE cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight, int
                   << ", Name=" << caps.Name << ", Min=" << caps.MinValue << ", Max=" << caps.MaxValue << std::endl;
     }
 
-    int roiResult = cmd_set_ROI(cameraID, roiWidth, roiHeight, roiBin, imgType);
+    int roiResult = cam_set_ROI(cameraID, roiWidth, roiHeight, roiBin, imgType);
     if (roiResult != ASI_SUCCESS) {
         std::cout << "Failed to set ROI." << std::endl;
         return initResult;
@@ -87,7 +87,7 @@ ASI_ERROR_CODE cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight, int
     int centerX = (8288 - roiWidth) / 2;
     int centerY = (5644 - roiHeight) / 2;
 
-    int posResult = cmd_set_pos(cameraID, centerX, centerY);
+    int posResult = cam_set_pos(cameraID, centerX, centerY);
     if (posResult != ASI_SUCCESS) {
         std::cout << "Failed to set position." << std::endl;
         return initResult;
@@ -96,7 +96,7 @@ ASI_ERROR_CODE cmd_init_camera(int& cameraID, int& roiWidth, int& roiHeight, int
 }
 
 // Stops the camera and closes it
-ASI_ERROR_CODE cmd_stop_camera(int cameraID) {
+ASI_ERROR_CODE cam_stop_camera(int cameraID) {
     ASI_ERROR_CODE stopResult = ASIStopVideoCapture(cameraID);
     std::cout << "ASIStopVideoCapture result: " << stopResult << std::endl;
     if(stopResult != ASI_SUCCESS) return static_cast<ASI_ERROR_CODE>(stopResult);
@@ -126,7 +126,7 @@ std::string save_file(const char* defaultName = "snap_image.png") {
 }
 
 // Handles video mode: gets and displays video frames
-void cmd_video_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
+void cam_video_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
     // int startRes = ASIStartVideoCapture(cameraID);
     // std::cout << "ASIStartVideoCapture result: " << startRes << std::endl;
     ASI_ERROR_CODE res = ASIGetVideoData(cameraID, frame.data, roiWidth * roiHeight, 1000);
@@ -139,7 +139,7 @@ void cmd_video_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
 }
 
 // Handles snap mode: starts exposure, waits, displays, and saves single frame
-void cmd_snap_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
+void cam_snap_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
     ASIStopVideoCapture(cameraID);
     int startExpRes = ASIStartExposure(cameraID, ASI_FALSE);
     std::cout << "ASIStartExposure result: " << startExpRes << std::endl;
@@ -197,49 +197,49 @@ ASI_ERROR_GENERAL_ERROR,//general error, eg: value is out of valid range; operat
 */
 
 // Sets exposure controls
-ASI_ERROR_CODE cmd_set_exposure(int cameraID, long lValue, ASI_BOOL bAuto) {
+ASI_ERROR_CODE cam_set_exposure(int cameraID, long lValue, ASI_BOOL bAuto) {
     ASI_ERROR_CODE res = ASISetControlValue(cameraID, ASI_EXPOSURE, lValue, bAuto);
     std::cout << "ASISetControlValue (EXPOSURE) result: " << res << std::endl;
     return res;
 }
 
 // Sets gain controls
-ASI_ERROR_CODE cmd_set_gain(int cameraID, long lValue, ASI_BOOL bAuto) {
+ASI_ERROR_CODE cam_set_gain(int cameraID, long lValue, ASI_BOOL bAuto) {
     ASI_ERROR_CODE res = ASISetControlValue(cameraID, ASI_GAIN, lValue, bAuto);
     std::cout << "ASISetControlValue (GAIN) result: " << res << std::endl;
     return res;
 }
 
 // Sets offset controls
-ASI_ERROR_CODE cmd_set_offset(int cameraID, long lValue, ASI_BOOL bAuto) {
+ASI_ERROR_CODE cam_set_offset(int cameraID, long lValue, ASI_BOOL bAuto) {
     ASI_ERROR_CODE res = ASISetControlValue(cameraID, ASI_OFFSET, lValue, bAuto);
     std::cout << "ASISetControlValue (OFFSET) result: " << res << std::endl;
     return res;
 }
 
 // Gets current exposure value
-ASI_ERROR_CODE cmd_get_exposure(int cameraID, long& lValue, ASI_BOOL& bAuto) {
+ASI_ERROR_CODE cam_get_exposure(int cameraID, long& lValue, ASI_BOOL& bAuto) {
     ASI_ERROR_CODE res = ASIGetControlValue(cameraID, ASI_EXPOSURE, &lValue, &bAuto);
     std::cout << "ASIGetControlValue (EXPOSURE): Value=" << lValue << ", Auto=" << bAuto << " (result: " << res << ")" << std::endl;
     return res;
 }
 
 // Gets current gain value
-ASI_ERROR_CODE cmd_get_gain(int cameraID, long& lValue, ASI_BOOL& bAuto) {
+ASI_ERROR_CODE cam_get_gain(int cameraID, long& lValue, ASI_BOOL& bAuto) {
     ASI_ERROR_CODE res = ASIGetControlValue(cameraID, ASI_GAIN, &lValue, &bAuto);
     std::cout << "ASIGetControlValue (GAIN): Value=" << lValue << ", Auto=" << bAuto << " (result: " << res << ")" << std::endl;
     return res;
 }
 
 // Gets current offset value
-ASI_ERROR_CODE cmd_get_offset(int cameraID, long& lValue, ASI_BOOL& bAuto) {
+ASI_ERROR_CODE cam_get_offset(int cameraID, long& lValue, ASI_BOOL& bAuto) {
     ASI_ERROR_CODE res = ASIGetControlValue(cameraID, ASI_OFFSET, &lValue, &bAuto);
     std::cout << "ASIGetControlValue (OFFSET): Value=" << lValue << ", Auto=" << bAuto << " (result: " << res << ")" << std::endl;
     return res;
 }
 
 // Gets min/max exposure range (isMax=true for max, isMax=false for min)
-long cmd_get_exposure_range(int cameraID, bool isMax) {
+long cam_get_exposure_range(int cameraID, bool isMax) {
     ASI_CONTROL_CAPS caps;
     int numControls = 0;
     ASIGetNumOfControls(cameraID, &numControls);
@@ -257,7 +257,7 @@ long cmd_get_exposure_range(int cameraID, bool isMax) {
 }
 
 // Gets min/max gain range (isMax=true for max, isMax=false for min)
-long cmd_get_gain_range(int cameraID, bool isMax) {
+long cam_get_gain_range(int cameraID, bool isMax) {
     ASI_CONTROL_CAPS caps;
     int numControls = 0;
     ASIGetNumOfControls(cameraID, &numControls);
@@ -284,19 +284,19 @@ int main() {
     int roiBin = 1;
     ASI_IMG_TYPE imgType = ASI_IMG_Y8;
 
-    if (cmd_init_camera(cameraID, roiWidth, roiHeight, roiBin, imgType) != ASI_SUCCESS) {
+    if (cam_init_camera(cameraID, roiWidth, roiHeight, roiBin, imgType) != ASI_SUCCESS) {
         std::cout << "Camera initialisation failed." << std::endl;
         return 1;
     }
 
 
-    if(cmd_set_exposure(cameraID, 100, ASI_FALSE) != ASI_SUCCESS) {
-        cmd_stop_camera(cameraID);
+    if(cam_set_exposure(cameraID, 100, ASI_FALSE) != ASI_SUCCESS) {
+        cam_stop_camera(cameraID);
         return 1;
     }
 
-    if(cmd_set_gain(cameraID, 200, ASI_FALSE) != ASI_SUCCESS) {
-        cmd_stop_camera(cameraID);
+    if(cam_set_gain(cameraID, 200, ASI_FALSE) != ASI_SUCCESS) {
+        cam_stop_camera(cameraID);
         return 1;
     }
 
@@ -305,11 +305,11 @@ int main() {
     std::cout << "Choose mode: [v]ideo or [s]nap? ";
     std::getline(std::cin, modeChoice);
     if (modeChoice == "s" || modeChoice == "S") {
-        cmd_snap_mode(cameraID, frame, roiWidth, roiHeight);
+        cam_snap_mode(cameraID, frame, roiWidth, roiHeight);
     } else {
         ASIStartVideoCapture(cameraID);
         while (true) {
-            cmd_video_mode(cameraID, frame, roiWidth, roiHeight);
+            cam_video_mode(cameraID, frame, roiWidth, roiHeight);
             int key = cv::waitKey(1);
             if (key == 27 || cv::getWindowProperty("ASI Camera Live", cv::WND_PROP_VISIBLE) < 1) {
                 break;
@@ -318,7 +318,7 @@ int main() {
         ASIStopVideoCapture(cameraID);
     }
 
-    cmd_stop_camera(cameraID);
+    cam_stop_camera(cameraID);
     std::cout << "asi_live_view: Exiting program." << std::endl;
     return 0;
 }

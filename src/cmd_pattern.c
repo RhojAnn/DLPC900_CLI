@@ -11,7 +11,7 @@
 /**
 * Switches to On-The-Fly (OTF) pattern mode
 */
-int cmd_otf(void) {
+int dmd_otf(void) {
     if (LCR_SetMode(3) < 0) {
         printf("ERROR: Cannot set OTF mode\n");
         return -1;
@@ -23,7 +23,7 @@ int cmd_otf(void) {
 /**
 * Switches to Disable pattern mode
 */
-int cmd_disable(void) {
+int dmd_disable(void) {
     if (LCR_SetMode(0) < 0) {
         printf("ERROR: Cannot disable pattern mode\n");
         return -1;
@@ -35,7 +35,7 @@ int cmd_disable(void) {
 /**
 * Prints out the current pattern mode
 */
-int cmd_pattern_mode(void) {
+int dmd_pattern_mode(void) {
     API_DisplayMode_t mode;
     
     if (LCR_GetMode(&mode) < 0) {
@@ -67,7 +67,7 @@ int cmd_pattern_mode(void) {
 /**
 * Stop current pattern sequence from running
 */
-int cmd_clear_pattern(void) {
+int dmd_clear_pattern(void) {
     if (LCR_PatternDisplay(0x0) < 0) {
         printf("ERROR: Cannot stop pattern\n");
         return -1;
@@ -79,8 +79,8 @@ int cmd_clear_pattern(void) {
 /**
 * Test if pattern sequence works by generating a checkerboard
 */
-int cmd_tpg(void) {
-    cmd_disable();
+int dmd_tpg(void) {
+    dmd_disable();
     
     /* Set input source to internal test pattern (0=parallel, 1=internal test pattern) */
     if (LCR_SetInputSource(1, 0) < 0) {

@@ -9,6 +9,8 @@ class CameraControls(tk.Frame):
         self.label.pack(anchor="sw", padx=5, pady=5)
 
         self.create_camera_mode_section()
+        self.create_roi_section()
+        self.create_position_section()
         self.create_exposure_section()
         self.create_gain_section()
         self.create_snapshot_save_section()
@@ -23,6 +25,42 @@ class CameraControls(tk.Frame):
         radio2 = tk.Radiobutton(self, text="Snapshot", variable=self.mode_var, value="Snapshot", command=self.on_mode_select)
         radio1.pack(anchor="sw", padx=5, pady=2)
         radio2.pack(anchor="sw", padx=5, pady=2)
+
+    def create_roi_section(self):
+        self.label = tk.Label(self, text="ROI Section", font=("Arial", 11, "bold"))
+        self.label.pack(anchor="sw", padx=5, pady=(15, 5))
+
+        # ROI Width and Height
+        roi_frame = tk.Frame(self)
+        roi_frame.pack(anchor="w", padx=5, pady=5)
+        
+        tk.Label(roi_frame, text="Width:", font=("Arial", 10)).pack(side="left", padx=5)
+        self.roi_width_var = tk.StringVar(value="640")
+        self.roi_width_text = tk.Entry(roi_frame, textvariable=self.roi_width_var, width=8)
+        self.roi_width_text.pack(side="left", padx=5)
+        
+        tk.Label(roi_frame, text="Height:", font=("Arial", 10)).pack(side="left", padx=5)
+        self.roi_height_var = tk.StringVar(value="480")
+        self.roi_height_text = tk.Entry(roi_frame, textvariable=self.roi_height_var, width=8)
+        self.roi_height_text.pack(side="left", padx=5)
+
+    def create_position_section(self):
+        self.label = tk.Label(self, text="Position", font=("Arial", 11, "bold"))
+        self.label.pack(anchor="sw", padx=5, pady=(15, 5))
+
+        # Position X and Y
+        pos_frame = tk.Frame(self)
+        pos_frame.pack(anchor="w", padx=5, pady=5)
+        
+        tk.Label(pos_frame, text="X:", font=("Arial", 10)).pack(side="left", padx=5)
+        self.pos_x_var = tk.StringVar(value="0")
+        self.pos_x_text = tk.Entry(pos_frame, textvariable=self.pos_x_var, width=8)
+        self.pos_x_text.pack(side="left", padx=5)
+        
+        tk.Label(pos_frame, text="Y:", font=("Arial", 10)).pack(side="left", padx=5)
+        self.pos_y_var = tk.StringVar(value="0")
+        self.pos_y_text = tk.Entry(pos_frame, textvariable=self.pos_y_var, width=8)
+        self.pos_y_text.pack(side="left", padx=5)
 
     def create_exposure_section(self):
         self.label = tk.Label(self, text="Exposure", font=("Arial", 11, "bold"))

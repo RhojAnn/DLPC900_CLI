@@ -19,7 +19,7 @@ int is_dmd_connected(void) {
 /** 
  *   Establish USB connection to DLPC900 device
 */
-int connect_device(void) {
+int dmd_connect(void) {
     if (USB_Init() != 0) {
         printf("ERROR: USB initialization failed\n");
         return -1;
@@ -35,7 +35,7 @@ int connect_device(void) {
 /*
 *   Close USB connection to DLPC900 device
 */
-void disconnect_device(void) {
+void dmd_disconnect(void) {
     USB_Close();
     USB_Exit();
 }

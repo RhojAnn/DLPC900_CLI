@@ -223,7 +223,7 @@ static int display_bmp(const char *filename) {
     printf("\n=== Loading BMP to DMD ===\n\n");
     
     printf("[1] Switching to OTF mode...\n");
-    if (cmd_otf() < 0) {
+    if (dmd_otf() < 0) {
         printf("ERROR: Failed to switch to OTF mode\n");
         goto cleanup;
     }
@@ -259,7 +259,7 @@ cleanup:
 }
 
 
-static int cmd_get_bmp(char *filename, int maxLen) {
+static int dmd_get_bmp(char *filename, int maxLen) {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
 
@@ -272,29 +272,29 @@ static int cmd_get_bmp(char *filename, int maxLen) {
     return 0;
 }
 
-int cmd_load_bmp(void) {
+int dmd_load_bmp(void) {
     char filename[256];
     
-    if (cmd_get_bmp(filename, sizeof(filename)) < 0) return -1;
+    if (dmd_get_bmp(filename, sizeof(filename)) < 0) return -1;
     if (display_bmp(filename) < 0) return -1;
         
     printf("\n=== Uploaded image displayed on DMD ===\n");
     return 0;
 }
 
-int cmd_load_half(void) {
+int dmd_load_half(void) {
     if(display_bmp("test_patterns\\testBMP.bmp") < 0) return -1;
     printf("\n=== Half-white and half-black image displayed on DMD ===\n");
     return 0;
 }
 
-int cmd_load_white(void) {
+int dmd_load_white(void) {
     if(display_bmp("test_patterns\\testBMPwhite.bmp") < 0) return -1;
     printf("\n=== White image displayed on DMD ===\n");
     return 0;
 }
 
-int cmd_load_black(void) {
+int dmd_load_black(void) {
     if(display_bmp("test_patterns\\testBMPblack.bmp") < 0) return -1;
 
     printf("\n=== Black image displayed on DMD ===\n");
