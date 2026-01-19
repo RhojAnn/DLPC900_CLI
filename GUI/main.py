@@ -8,7 +8,7 @@ import ctypes
 import os
 
 window = tk.Tk()
-window.title("GUI Test")
+window.title("DLPC900 & ASI Camera Control")
 window.geometry("800x400")
 window.resizable(True, True)
 
@@ -31,6 +31,10 @@ control_panel.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
 control_panel.grid_propagate(False)
 control_panel.config(width=400)
 
+# Video feed area (create before camera_controls so we can pass reference)
+video_panel = VideoPanel(window)
+video_panel.grid(row=0, column=1, rowspan=3, sticky="nsew")
+
 def show_camera_controls():
     camera_controls.grid()
     dmd_controls.grid_remove()
@@ -51,16 +55,12 @@ dmd_controls.grid(row=2, column=0, sticky="nsew", padx=5, pady=5)
 dmd_controls.grid_propagate(False)
 dmd_controls.config(width=400)
 
-# Camera controls
-camera_controls = CameraControls(window)
+# Camera controls (pass video_panel reference)
+camera_controls = CameraControls(window, video_panel=video_panel)
 camera_controls.grid(row=2, column=0, sticky="nsew", padx=5, pady=5)
 camera_controls.grid_propagate(False)
 camera_controls.config(width=400)
 camera_controls.grid_remove()  # Hidden by default
-
-# Video feed area
-video_panel = VideoPanel(window)
-video_panel.grid(row=0, column=1, rowspan=3, sticky="nsew")
 
 
 # Function to maintain 1:1 aspect ratio for video_panel
@@ -83,5 +83,13 @@ def toggle_fullscreen(event=None):
 
 window.bind('<F11>', toggle_fullscreen)
 
+
+# Cleanup on close
+def on_closing():
+    camera_controls.cleanup()
+    window.destroy()
+
+
+window.protocol("WM_DELETE_WINDOW", on_closing)
 
 window.mainloop()

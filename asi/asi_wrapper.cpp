@@ -43,4 +43,69 @@ extern "C" {
         return static_cast<int>(result);
     }
 
+    ASI_WRAPPER_API int asi_start_video_capture(int cameraID) {
+        ASI_ERROR_CODE result = ASIStartVideoCapture(cameraID);
+        
+        std::cout << "asi_start_video_capture wrapper: result=" << result << std::endl;
+        
+        return static_cast<int>(result);
+    }
+
+    ASI_WRAPPER_API int asi_stop_video_capture(int cameraID) {
+        ASI_ERROR_CODE result = ASIStopVideoCapture(cameraID);
+        
+        std::cout << "asi_stop_video_capture wrapper: result=" << result << std::endl;
+        
+        return static_cast<int>(result);
+    }
+
+    ASI_WRAPPER_API int asi_start_exposure(int cameraID, int isDark) {
+        ASI_BOOL isDarkBool = isDark ? ASI_TRUE : ASI_FALSE;
+        ASI_ERROR_CODE result = ASIStartExposure(cameraID, isDarkBool);
+        
+        std::cout << "asi_start_exposure wrapper: result=" << result << std::endl;
+        
+        return static_cast<int>(result);
+    }
+
+    ASI_WRAPPER_API int asi_get_exp_status(int cameraID, int* status) {
+        if (!status) {
+            return -1; // Invalid parameters
+        }
+        
+        ASI_EXPOSURE_STATUS expStatus;
+        ASI_ERROR_CODE result = ASIGetExpStatus(cameraID, &expStatus);
+        *status = static_cast<int>(expStatus);
+        
+        return static_cast<int>(result);
+    }
+
+    ASI_WRAPPER_API int asi_get_data_after_exp(int cameraID, unsigned char* buffer, int bufferSize) {
+        if (!buffer || bufferSize <= 0) {
+            return -1; // Invalid parameters
+        }
+        
+        ASI_ERROR_CODE result = ASIGetDataAfterExp(cameraID, buffer, bufferSize);
+        
+        return static_cast<int>(result);
+    }
+
+    ASI_WRAPPER_API int asi_set_exposure(int cameraID, long value, int isAuto) {
+        ASI_BOOL isAutoBool = isAuto ? ASI_TRUE : ASI_FALSE;
+        ASI_ERROR_CODE result = ASISetControlValue(cameraID, ASI_EXPOSURE, value, isAutoBool);
+        
+        std::cout << "asi_set_exposure wrapper: value=" << value << ", result=" << result << std::endl;
+        
+        return static_cast<int>(result);
+    }
+
+    ASI_WRAPPER_API int asi_set_gain(int cameraID, long value, int isAuto) {
+        ASI_BOOL isAutoBool = isAuto ? ASI_TRUE : ASI_FALSE;
+        ASI_ERROR_CODE result = ASISetControlValue(cameraID, ASI_GAIN, value, isAutoBool);
+        
+        std::cout << "asi_set_gain wrapper: value=" << value << ", result=" << result << std::endl;
+        
+        return static_cast<int>(result);
+    }
+
 }

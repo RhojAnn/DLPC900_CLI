@@ -27,6 +27,37 @@ ASI_WRAPPER_API int asi_get_frame(int cameraID, unsigned char* buffer, int buffe
 // Returns ASI_ERROR_CODE (0 = ASI_SUCCESS)
 ASI_WRAPPER_API int asi_stop_camera(int cameraID);
 
+// Start video capture mode
+// Returns ASI_ERROR_CODE (0 = ASI_SUCCESS)
+ASI_WRAPPER_API int asi_start_video_capture(int cameraID);
+
+// Stop video capture mode
+// Returns ASI_ERROR_CODE (0 = ASI_SUCCESS)
+ASI_WRAPPER_API int asi_stop_video_capture(int cameraID);
+
+// Start exposure for snapshot mode
+// Returns ASI_ERROR_CODE (0 = ASI_SUCCESS)
+ASI_WRAPPER_API int asi_start_exposure(int cameraID, int isDark);
+
+// Get exposure status for snapshot mode
+// status: pointer to store exposure status
+// Returns ASI_ERROR_CODE (0 = ASI_SUCCESS)
+ASI_WRAPPER_API int asi_get_exp_status(int cameraID, int* status);
+
+// Get data after exposure (snapshot mode)
+// buffer: pointer to buffer to store frame data
+// bufferSize: size of the buffer in bytes
+// Returns ASI_ERROR_CODE (0 = ASI_SUCCESS)
+ASI_WRAPPER_API int asi_get_data_after_exp(int cameraID, unsigned char* buffer, int bufferSize);
+
+// Set exposure control value
+// Returns ASI_ERROR_CODE (0 = ASI_SUCCESS)
+ASI_WRAPPER_API int asi_set_exposure(int cameraID, long value, int isAuto);
+
+// Set gain control value
+// Returns ASI_ERROR_CODE (0 = ASI_SUCCESS)
+ASI_WRAPPER_API int asi_set_gain(int cameraID, long value, int isAuto);
+
 #ifdef __cplusplus
 }
 #endif
