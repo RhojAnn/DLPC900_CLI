@@ -8,7 +8,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
-    from test_asi_wrapper import ASICameraWrapper, ASI_SUCCESS
+    from test_asi_wrapper import ASICameraWrapper
     WRAPPER_AVAILABLE = True
 except (ImportError, FileNotFoundError) as e:
     print(f"Warning: ASI Camera wrapper not available: {e}")
@@ -61,12 +61,6 @@ class CameraControls(tk.Frame):
                                       font=("Arial", 9), fg="red")
         self.camera_status.pack(side="left", padx=5)
 
-        self.create_camera_mode_section()
-        self.create_roi_section()
-        self.create_position_section()
-        self.create_exposure_section()
-        self.create_gain_section()
-        self.create_snapshot_save_section()
 
     def create_camera_mode_section(self):
         self.label = tk.Label(self, text="Camera Mode", font=("Arial", 11, "bold"))

@@ -6,6 +6,7 @@ video streaming and snapshot modes for GUI integration.
 
 import ctypes
 import os
+import time
 import numpy as np
 from PIL import Image, ImageTk
 
@@ -264,7 +265,6 @@ class ASICameraWrapper:
             return None
         
         # Wait for exposure to complete
-        import time
         elapsed = 0
         poll_interval = 10  # ms
         status = ctypes.c_int()
