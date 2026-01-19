@@ -4,6 +4,7 @@ from status_panel import StatusPanel
 from dmd_controls import DMDControls
 from camera_controls import CameraControls
 from video_panel import VideoPanel
+from asi_wrapper import ASICamera, ImgType
 import ctypes
 import os
 
@@ -11,6 +12,9 @@ window = tk.Tk()
 window.title("GUI Test")
 window.geometry("800x400")
 window.resizable(True, True)
+
+# Initialize camera (shared across panels)
+camera = ASICamera()
 
 # Configure grid layout
 window.rowconfigure(0, weight=0, minsize=100)
@@ -30,6 +34,17 @@ control_panel = tk.Frame(window)
 control_panel.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
 control_panel.grid_propagate(False)
 control_panel.config(width=400)
+
+# Video feed area
+video_panel = VideoPanel(window)
+video_panel.grid(row=0, column=1, rowspan=3, sticky="nsew")
+video_panel.set_camera(camera)
+
+
+def auto_connect_camera():
+    """Auto-connect camera after window is ready."""
+    camera_controls.auto_connect(status_panel)
+
 
 def show_camera_controls():
     camera_controls.grid()
@@ -52,15 +67,11 @@ dmd_controls.grid_propagate(False)
 dmd_controls.config(width=400)
 
 # Camera controls
-camera_controls = CameraControls(window)
+camera_controls = CameraControls(window, camera, video_panel)
 camera_controls.grid(row=2, column=0, sticky="nsew", padx=5, pady=5)
 camera_controls.grid_propagate(False)
 camera_controls.config(width=400)
 camera_controls.grid_remove()  # Hidden by default
-
-# Video feed area
-video_panel = VideoPanel(window)
-video_panel.grid(row=0, column=1, rowspan=3, sticky="nsew")
 
 
 # Function to maintain 1:1 aspect ratio for video_panel
@@ -81,7 +92,19 @@ def toggle_fullscreen(event=None):
     window.attributes('-fullscreen', not is_fullscreen)
 
 
-window.bind('<F11>', toggle_fullscreen)
+def on_closing():
+    """Cleanup when window is closed."""
+    camera_controls.stop_health_check()
+    video_panel.stop_stream()
+    if camera.is_connected:
+        camera.stop_camera()
+    window.destroy()
 
+
+window.bind('<F11>', toggle_fullscreen)
+window.protocol("WM_DELETE_WINDOW", on_closing)
+
+# Auto-connect camera after window is fully loaded
+window.after(100, auto_connect_camera)
 
 window.mainloop()

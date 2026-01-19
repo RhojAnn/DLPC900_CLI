@@ -125,6 +125,11 @@ std::string save_file(const char* defaultName = "snap_image.png") {
     }
 }
 
+// Gets frame from camera
+int cam_get_frame(int cameraID, unsigned char* buffer, int bufferSize, int waitMs) {
+    return ASIGetVideoData(cameraID, buffer, bufferSize, waitMs);
+}
+
 // Handles video mode: gets and displays video frames
 void cam_video_mode(int cameraID, cv::Mat& frame, int roiWidth, int roiHeight) {
     // int startRes = ASIStartVideoCapture(cameraID);

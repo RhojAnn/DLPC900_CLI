@@ -11,6 +11,20 @@ class StatusPanel(tk.Frame):
         self.dmd_status.pack(anchor="nw", padx=5, pady=2)
         self.camera_status = tk.Label(self, text="Camera: Disconnected", fg="red")
         self.camera_status.pack(anchor="nw", padx=5, pady=2)
+    
+    def set_camera_status(self, message: str, connected: bool):
+        """Update camera status display."""
+        if connected:
+            self.camera_status.config(text=f"Camera: {message}", fg="green")
+        else:
+            self.camera_status.config(text=f"Camera: {message}", fg="red")
+    
+    def set_dmd_status(self, message: str, connected: bool):
+        """Update DMD status display."""
+        if connected:
+            self.dmd_status.config(text=f"DMD: {message}", fg="green")
+        else:
+            self.dmd_status.config(text=f"DMD: {message}", fg="red")
 
 '''
         # DLL loading and connection checking logic

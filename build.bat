@@ -6,10 +6,10 @@ if not exist bin mkdir bin
 
 gcc -o bin\dlpc900_cli.exe ^
     src\main.c ^
-    src\cmd_status.c ^
-    src\cmd_pattern.c ^
-    src\cmd_image.c ^
-    src\cmd_connection.c ^
+    src\dmd_status.c ^
+    src\dmd_pattern.c ^
+    src\dmd_image.c ^
+    src\dmd_connection.c ^
     lib\diagnosticFile.c ^
     lib\API.c ^
     lib\usb.c ^
