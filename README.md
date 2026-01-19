@@ -1,13 +1,16 @@
 # DMD DLPC900
 
 ## ToDos (according to priority)
-- [ ] Turn code into a dll file for python wrapper GUI
-- [ ] Make python wrapper for GUI
+- [ ] Clean code 
+- [ ] Make bmp for blacking out certain sections
+- [ ] Fix standby issue
+- [ ] Add testing section for dmd
 - [ ] Ensure that DMD Communication Status isn't an hardware issue
 
 ## Done
 - [x] Control exposure and gain in camera
-
+- [x] Turn code into a dll file for python wrapper GUI
+- [x] Make python wrapper for GUI
 - [x] Continue cleaning out code
 - [x] Test Communication Status
 - [x] Clean up main.c so that cmd functions are seperated according to its category

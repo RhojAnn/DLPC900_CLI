@@ -15,7 +15,7 @@
 * with potential reason of the DMD trying to detect a second controller 
 * but it doesn't exists
 */
-int dmd_status(void) {
+int cmd_status(void) {
     unsigned char hw, sys, main_status, dlpa, dmd;
     
     if (LCR_GetStatus(&hw, &sys, &main_status, &dlpa, &dmd) < 0) {
@@ -35,7 +35,7 @@ int dmd_status(void) {
 /**
  * Prints out the firmware version information: App, API, SW Config, Seq Config
  */
-int dmd_version(void) {
+int cmd_version(void) {
     unsigned int app, api, swconfig, seqconfig;
     
     if (LCR_GetVersion(&app, &api, &swconfig, &seqconfig) < 0) {
@@ -69,7 +69,9 @@ static int get_standby_delay(void){
 /**
  * Gets the current power mode (standby or normal)
  */
-int dmd_get_power_mode(void){
+int cmd_get_power_mode(void){
+
+    /*
     int is_idle = LCR_GetDMDSaverMode();
 
     if(is_idle < 0){
@@ -79,6 +81,7 @@ int dmd_get_power_mode(void){
         printf("Power mode: Idle (DMD saver mode enabled)\n");
         return 0;
     }
+    */
 
     int is_normal = get_standby_delay();
 
@@ -97,7 +100,7 @@ int dmd_get_power_mode(void){
 /**
  * Toggles the DMD saver mode (idle mode)
  */
-int dmd_toggle_idle(void){
+int cmd_toggle_idle(void){
     int current_mode = LCR_GetDMDSaverMode();
     
     if(current_mode < 0){
@@ -119,7 +122,7 @@ int dmd_toggle_idle(void){
 /**
  * Set the DMD to standby mode
  */
-int dmd_set_standby(void){
+int cmd_set_standby(void){
     if(get_standby_delay() == -1){
         printf("ERROR: Cannot get standby delay\n");
         return -1;
@@ -141,7 +144,7 @@ int dmd_set_standby(void){
 /**
  * Sets the DMD to normal mode
  */
-int dmd_set_normal(void){
+int cmd_set_normal(void){
     if(get_standby_delay() == -1){
         printf("ERROR: Cannot get standby delay\n");
         return -1;

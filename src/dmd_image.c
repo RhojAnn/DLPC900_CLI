@@ -213,7 +213,7 @@ static int start_pattern_display(int exposureUs, int bitDepth, int ledSelect, un
  * @param filename - Path to BMP file
  * @return 0 on success, -1 on failure 
  */
-static int display_bmp(const char *filename) {
+int cmd_display_bmp(const char *filename) {
     Image_t *image = NULL;
     uint08 *splash = NULL;
     int splashSize;
@@ -223,7 +223,7 @@ static int display_bmp(const char *filename) {
     printf("\n=== Loading BMP to DMD ===\n\n");
     
     printf("[1] Switching to OTF mode...\n");
-    if (dmd_otf() < 0) {
+    if (cmd_otf() < 0) {
         printf("ERROR: Failed to switch to OTF mode\n");
         goto cleanup;
     }
@@ -272,30 +272,30 @@ static int dmd_get_bmp(char *filename, int maxLen) {
     return 0;
 }
 
-int dmd_load_bmp(void) {
+int cmd_load_bmp(void) {
     char filename[256];
     
     if (dmd_get_bmp(filename, sizeof(filename)) < 0) return -1;
-    if (display_bmp(filename) < 0) return -1;
+    if (cmd_display_bmp(filename) < 0) return -1;
         
     printf("\n=== Uploaded image displayed on DMD ===\n");
     return 0;
 }
 
-int dmd_load_half(void) {
-    if(display_bmp("test_patterns\\testBMP.bmp") < 0) return -1;
+int cmd_load_half(void) {
+    if(cmd_display_bmp("test_patterns\\testBMP.bmp") < 0) return -1;
     printf("\n=== Half-white and half-black image displayed on DMD ===\n");
     return 0;
 }
 
-int dmd_load_white(void) {
-    if(display_bmp("test_patterns\\testBMPwhite.bmp") < 0) return -1;
+int cmd_load_white(void) {
+    if(cmd_display_bmp("test_patterns\\testBMPwhite.bmp") < 0) return -1;
     printf("\n=== White image displayed on DMD ===\n");
     return 0;
 }
 
-int dmd_load_black(void) {
-    if(display_bmp("test_patterns\\testBMPblack.bmp") < 0) return -1;
+int cmd_load_black(void) {
+    if(cmd_display_bmp("test_patterns\\testBMPblack.bmp") < 0) return -1;
 
     printf("\n=== Black image displayed on DMD ===\n");
     return 0;

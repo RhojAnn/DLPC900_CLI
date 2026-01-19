@@ -49,11 +49,11 @@ int main(int argc, char *argv[]) {
     
 
 
-    if (dmd_connect() != 0) 
+    if (cmd_connect() != 0) 
         printf("\nRunning in disconnected mode (commands will fail)\n");
     
 
-    dmd_set_normal();
+    cmd_set_normal();
 
     while (1) {
         print_menu();
@@ -68,40 +68,40 @@ int main(int argc, char *argv[]) {
         choice = atoi(input);
         
         switch (choice) {
-            case 1:  dmd_status();          break;
-            case 2:  dmd_version();         break;
-            case 3:  dmd_toggle_idle();     break;
-            case 4:  dmd_pattern_mode();    break;
-            case 5:  dmd_otf();             break;
-            case 6:  dmd_disable();         break;
-            case 7:  dmd_clear_pattern();   break;
-            case 8:  dmd_tpg();             break;
-            case 9:  dmd_load_bmp();        break;
+            case 1:  cmd_status();          break;
+            case 2:  cmd_version();         break;
+            case 3:  cmd_toggle_idle();     break;
+            case 4:  cmd_pattern_mode();    break;
+            case 5:  cmd_otf();             break;
+            case 6:  cmd_disable();         break;
+            case 7:  cmd_clear_pattern();   break;
+            case 8:  cmd_tpg();             break;
+            case 9:  cmd_load_bmp();        break;
             case 10: 
-                dmd_clear_pattern();   
-                dmd_load_half();
+                cmd_clear_pattern();   
+                cmd_load_half();
                 break;
             case 11: 
-                dmd_clear_pattern();   
-                dmd_load_white();
+                cmd_clear_pattern();   
+                cmd_load_white();
                 break;
             case 12: 
-                dmd_clear_pattern();   
-                dmd_load_black();
+                cmd_clear_pattern();   
+                cmd_load_black();
                 break;
             case 13:
-                dmd_set_standby();
+                cmd_set_standby();
                 break;
             case 14:
-                dmd_set_normal();
+                cmd_set_normal();
                 break;
             case 15:
-                dmd_get_power_mode();
+                cmd_get_power_mode();
                 break;
             case 0:
                 printf("Stopping and exiting...\n");
                 // cmd_set_standby();
-                dmd_disconnect();
+                cmd_disconnect();
                 return 0;
             default:
                 printf("Invalid choice. Please enter 0-15.\n");
@@ -109,6 +109,6 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    dmd_disconnect();
+    cmd_disconnect();
     return 0;
 }
