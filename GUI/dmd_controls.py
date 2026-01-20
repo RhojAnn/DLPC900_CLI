@@ -12,12 +12,20 @@ class DMDControls(tk.Frame):
         self.label.pack(anchor="sw", padx=5, pady=5)
 
         self.create_power_mode_section()
+        self.create_pattern_entry_controls()
+        stop_btn = tk.Button(self, text="Stop Pattern", 
+                            command=self.stop_pattern, 
+                            bg="red", 
+                            fg="white",
+                            font=("Arial", 10))
+        stop_btn.pack(anchor="sw", padx=5, pady=5)
 
+        '''
         # Button grid for pattern selection
         self.label = tk.Label(self, text="Pattern Selection", font=("Arial", 11, "bold"))
         self.label.pack(anchor="sw", padx=5, pady=(15, 5))
         self.create_button_grid(10, 10)
-
+        
         stop_btn = tk.Button(self, text="Stop Pattern", 
                             command=self.stop_pattern, 
                             bg="red", 
@@ -25,7 +33,7 @@ class DMDControls(tk.Frame):
                             font=("Arial", 10))
         stop_btn.pack(anchor="sw", padx=5, pady=5)
         
-        '''
+        
         # Test pattern buttons frame
         test_frame = tk.Frame(self)
         test_frame.pack(anchor="sw", padx=5, pady=5)
@@ -104,8 +112,6 @@ class DMDControls(tk.Frame):
                     self.status_panel.set_dmd_status("Connected", True)
                 # Update power mode display
                 self._update_power_mode_display()
-                # Start health check
-                # self.start_health_check()  # Commented out for now
             else:
                 if self.status_panel:
                     self.status_panel.set_dmd_status("Connection failed", False)
@@ -172,16 +178,48 @@ class DMDControls(tk.Frame):
         # Schedule next check in 2 seconds
         self._health_check_id = self.after(2000, self._check_dmd_health)
 
+    def create_pattern_entry_controls(self):
+        entry_frame = tk.Frame(self)
+        entry_frame.pack(anchor="w", padx=5, pady=5)
+        tk.Label(entry_frame, text="Row:").pack(side="left")
+        self.row_var = tk.StringVar()
+        row_entry = tk.Entry(entry_frame, textvariable=self.row_var, width=4)
+        row_entry.pack(side="left", padx=2)
+        tk.Label(entry_frame, text="Col:").pack(side="left")
+        self.col_var = tk.StringVar()
+        col_entry = tk.Entry(entry_frame, textvariable=self.col_var, width=4)
+        col_entry.pack(side="left", padx=2)
+        display_btn = tk.Button(entry_frame, text="Display Pattern", command=self.display_pattern_by_entry)
+        display_btn.pack(side="left", padx=5)
+
+    def display_pattern_by_entry(self):
+        """Parse row/col from entry and call on_button_select for pattern display."""
+        try:
+            row = int(self.row_var.get())
+            col = int(self.col_var.get())
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Row and Col must be integers.")
+            return
+        
+        image_path = f"row_pattern/{row}_{col}.bmp"
+        if self.dmd and self.dmd.connected:
+            try:
+                self.dmd.display_bmp(image_path)
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to display {image_path}: {e}")
+        else:
+            messagebox.showwarning("DMD Not Connected", "Please connect to DMD first.")
+
     def create_button_grid(self, rows=10, cols=10):
-        grid_frame = tk.Frame(self)
-        grid_frame.pack(padx=5, pady=5)
+        self.grid_frame = tk.Frame(self)
+        self.grid_frame.pack(padx=5, pady=5)
 
         self.grid_buttons = {}
         self.selected_button = None
 
         for row in range(rows):
             for col in range(cols):
-                btn = tk.Button(grid_frame, width=3, height=1,
+                btn = tk.Button(self.grid_frame, width=3, height=1,
                                 command=lambda r=row, c=col: self.on_button_select(r, c, lazy_load=True))
                 btn.grid(row=row, column=col, padx=2, pady=2)
                 self.grid_buttons[(row, col)] = btn
