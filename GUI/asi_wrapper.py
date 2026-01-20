@@ -125,6 +125,9 @@ class ASICamera:
         
         self.dll.cam_snap.argtypes = [c_int, POINTER(c_ubyte), c_int, c_int, c_int]
         self.dll.cam_snap.restype = c_int
+
+        self.dll.cam_get_dimension_range.argtypes = [c_int, POINTER(c_int), POINTER(c_int), POINTER(c_int), POINTER(c_int)]
+        self.dll.cam_get_dimension_range.restype = c_int
     
     # Connection Methods
     
@@ -194,10 +197,20 @@ class ASICamera:
     # Controls Methods
     
     def set_pos(self, start_x: int, start_y: int) -> int:
-        """Set ROI start position."""
+        """Set ROI start position, restricted by sensor bounds and current ROI size."""
         if self.camera_id is None:
             return -1
-        return self.dll.cam_set_pos(self.camera_id, start_x, start_y)
+        # Get sensor dimension limits
+        min_w, max_w, min_h, max_h = self.get_dimension_range()
+        # Calculate max allowed start_x and start_y
+        max_start_x = max_w - self.roi_width
+        max_start_y = max_h - self.roi_height
+        # Clamp values
+        clamped_x = max(0, min(start_x, max_start_x))
+        clamped_y = max(0, min(start_y, max_start_y))
+        if (start_x != clamped_x) or (start_y != clamped_y):
+            print(f"Requested position ({start_x},{start_y}) out of bounds. Clamped to ({clamped_x},{clamped_y})")
+        return self.dll.cam_set_pos(self.camera_id, clamped_x, clamped_y)
     
     def get_pos(self) -> tuple[int, int, int]:
         """
@@ -325,6 +338,19 @@ class ASICamera:
         val, auto = c_long(), c_int()
         result = self.dll.cam_get_offset(self.camera_id, byref(val), byref(auto))
         return result, val.value, bool(auto.value)
+    
+    def get_dimension_range(self):
+        """Return (min_width, max_width, min_height, max_height) for the camera sensor."""
+        if self.camera_id is None:
+            return 0, 0, 0, 0
+        min_w = c_int()
+        max_w = c_int()
+        min_h = c_int()
+        max_h = c_int()
+        res = self.dll.cam_get_dimension_range(self.camera_id, byref(min_w), byref(max_w), byref(min_h), byref(max_h))
+        if res != 0:
+            raise RuntimeError("Failed to get dimension range")
+        return min_w.value, max_w.value, min_h.value, max_h.value
     
     # ============== Buffer Helpers ==============
     

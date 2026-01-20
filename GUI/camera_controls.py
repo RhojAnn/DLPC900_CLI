@@ -42,7 +42,7 @@ class CameraControls(tk.Frame):
             width = int(self.roi_width_var.get())
             height = int(self.roi_height_var.get())
         except (ValueError, AttributeError):
-            width, height = 640, 480
+            width, height = 1080, 1080
         
         result = self.camera.init_camera(width, height)
         
@@ -92,7 +92,7 @@ class CameraControls(tk.Frame):
                 width = int(self.roi_width_var.get())
                 height = int(self.roi_height_var.get())
             except (ValueError, AttributeError):
-                width, height = 640, 480
+                width, height = 1080, 1080
             
             result = self.camera.init_camera(width, height)
             if result == 0:
@@ -135,14 +135,23 @@ class CameraControls(tk.Frame):
         roi_frame.pack(anchor="w", padx=5, pady=5)
         
         tk.Label(roi_frame, text="Width:", font=("Arial", 10)).pack(side="left", padx=5)
-        self.roi_width_var = tk.StringVar(value="640")
+
+        self.roi_width_var = tk.StringVar(value="1080")
         self.roi_width_text = tk.Entry(roi_frame, textvariable=self.roi_width_var, width=8)
         self.roi_width_text.pack(side="left", padx=5)
-        
+
         tk.Label(roi_frame, text="Height:", font=("Arial", 10)).pack(side="left", padx=5)
-        self.roi_height_var = tk.StringVar(value="480")
+        self.roi_height_var = tk.StringVar(value="1080")
         self.roi_height_text = tk.Entry(roi_frame, textvariable=self.roi_height_var, width=8)
         self.roi_height_text.pack(side="left", padx=5)
+
+        # Apply ROI button
+        self.apply_roi_btn = tk.Button(roi_frame, text="Apply ROI", command=self.on_apply_roi)
+        self.apply_roi_btn.pack(side="left", padx=10)
+
+        # ROI min/max label (underneath)
+        self.roi_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
+        self.roi_range_label.pack(anchor="w", padx=10, pady=(0, 5))
 
     def create_position_section(self):
         self.label = tk.Label(self, text="Position", font=("Arial", 11, "bold"))
@@ -153,14 +162,23 @@ class CameraControls(tk.Frame):
         pos_frame.pack(anchor="w", padx=5, pady=5)
         
         tk.Label(pos_frame, text="X:", font=("Arial", 10)).pack(side="left", padx=5)
+
         self.pos_x_var = tk.StringVar(value="0")
         self.pos_x_text = tk.Entry(pos_frame, textvariable=self.pos_x_var, width=8)
         self.pos_x_text.pack(side="left", padx=5)
-        
+
         tk.Label(pos_frame, text="Y:", font=("Arial", 10)).pack(side="left", padx=5)
         self.pos_y_var = tk.StringVar(value="0")
         self.pos_y_text = tk.Entry(pos_frame, textvariable=self.pos_y_var, width=8)
         self.pos_y_text.pack(side="left", padx=5)
+
+        # Apply Position button
+        self.apply_pos_btn = tk.Button(pos_frame, text="Apply Position", command=self.on_apply_position)
+        self.apply_pos_btn.pack(side="left", padx=10)
+
+        # Position min/max label (underneath)
+        self.pos_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
+        self.pos_range_label.pack(anchor="w", padx=10, pady=(0, 5))
 
     def create_exposure_section(self):
         self.label = tk.Label(self, text="Exposure (μs)", font=("Arial", 11, "bold"))
@@ -178,6 +196,10 @@ class CameraControls(tk.Frame):
         self.exposure_text.bind("<Return>", self.on_exposure_text_change)
         self.exposure_text.bind("<FocusOut>", self.on_exposure_text_change)
 
+        # Exposure min/max label (underneath)
+        self.exposure_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
+        self.exposure_range_label.pack(anchor="w", padx=10, pady=(0, 5))
+
     def create_gain_section(self):
         self.label = tk.Label(self, text="Gain", font=("Arial", 11, "bold"))
         self.label.pack(anchor="sw", padx=5, pady=(15, 5))
@@ -193,6 +215,10 @@ class CameraControls(tk.Frame):
         self.gain_text.pack(side="left", padx=5)
         self.gain_text.bind("<Return>", self.on_gain_text_change)
         self.gain_text.bind("<FocusOut>", self.on_gain_text_change)
+
+        # Gain min/max label (underneath)
+        self.gain_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
+        self.gain_range_label.pack(anchor="w", padx=10, pady=(0, 5))
 
     def create_snapshot_save_section(self):
         # Save button for snapshot mode (initially hidden)
@@ -261,6 +287,46 @@ class CameraControls(tk.Frame):
         except ValueError:
             pass  # Invalid input, ignore
 
+    def on_apply_roi(self):
+        """Apply ROI settings."""
+        if not self.camera or not self.camera.is_connected:
+            messagebox.showerror("Error", "Camera not connected")
+            return
+        
+        try:
+            width = int(self.roi_width_var.get())
+            height = int(self.roi_height_var.get())
+        except ValueError:
+            messagebox.showerror("Error", "Invalid ROI values")
+            return
+        
+        result = self.camera.set_ROI(width, height)
+        if result != 0:
+            messagebox.showerror("Error", f"Failed to set ROI: error {result}")
+            return
+        
+        print(f"ROI applied: {width}x{height}")
+
+    def on_apply_position(self):
+        """Apply position settings."""
+        if not self.camera or not self.camera.is_connected:
+            messagebox.showerror("Error", "Camera not connected")
+            return
+        
+        try:
+            pos_x = int(self.pos_x_var.get())
+            pos_y = int(self.pos_y_var.get())
+        except ValueError:
+            messagebox.showerror("Error", "Invalid position values")
+            return
+        
+        result = self.camera.set_pos(pos_x, pos_y)
+        if result != 0:
+            messagebox.showerror("Error", f"Failed to set position: error {result}")
+            return
+        
+        print(f"Position applied: ({pos_x}, {pos_y})")
+
     def on_save_snapshot(self):
         """Capture and save a snapshot."""
         if not self.camera or not self.camera.is_connected:
@@ -298,17 +364,12 @@ class CameraControls(tk.Frame):
             messagebox.showerror("Error", "No camera instance")
             return
         
-        num_cams = self.camera.get_num_cameras()
-        if num_cams == 0:
-            messagebox.showerror("Error", "No cameras detected")
-            return
-        
         # Get ROI from input fields
         try:
             width = int(self.roi_width_var.get())
             height = int(self.roi_height_var.get())
         except ValueError:
-            width, height = 640, 480
+            width, height = 1080, 1080
         
         result = self.camera.init_camera(width, height)
         
@@ -317,7 +378,7 @@ class CameraControls(tk.Frame):
             self.connect_btn.config(state="disabled")
             self.disconnect_btn.config(state="normal")
             
-            # Update exposure/gain ranges
+            # Update exposure/gain ranges and position
             self._update_control_ranges()
             
             # Start video if in video mode
@@ -339,22 +400,44 @@ class CameraControls(tk.Frame):
         self.disconnect_btn.config(state="disabled")
     
     def _update_control_ranges(self):
-        """Update slider ranges based on camera capabilities."""
+        """Update slider ranges and min/max hints based on camera capabilities."""
         if not self.camera or not self.camera.is_connected:
             return
-        
+
         # Update exposure range
         _, exp_min, exp_max = self.camera.get_exposure_range()
         self.exposure_slider.config(from_=exp_min, to=exp_max)
         _, current_exp, _ = self.camera.get_exposure()
         self.exposure_slider.set(current_exp)
         self.exposure_var.set(str(current_exp))
-        
+        self.exposure_range_label.config(text=f"Exposure: [{exp_min} - {exp_max}] μs")
+
         # Update gain range
         _, gain_min, gain_max = self.camera.get_gain_range()
         self.gain_slider.config(from_=gain_min, to=gain_max)
         _, current_gain, _ = self.camera.get_gain()
         self.gain_slider.set(current_gain)
         self.gain_var.set(str(current_gain))
+        self.gain_range_label.config(text=f"Gain: [{gain_min} - {gain_max}]")
+
+        # Update ROI and position min/max hints
+        try:
+            min_w, max_w, min_h, max_h = self.camera.get_dimension_range()
+        except Exception:
+            min_w = min_h = 0
+            max_w = max_h = 0
+
+        # ROI min/max label
+        self.roi_range_label.config(text=f"ROI width: [{min_w}-{max_w}], height: [{min_h}-{max_h}]")
+
+        # Position min/max label (max pos depends on ROI size)
+        try:
+            roi_w = int(self.roi_width_var.get())
+            roi_h = int(self.roi_height_var.get())
+        except Exception:
+            roi_w = roi_h = 0
+        max_x = max(0, max_w - roi_w)
+        max_y = max(0, max_h - roi_h)
+        self.pos_range_label.config(text=f"Position X: [0-{max_x}], Y: [0-{max_y}]")
 
     

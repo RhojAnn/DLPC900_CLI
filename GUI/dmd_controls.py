@@ -64,30 +64,33 @@ class DMDControls(tk.Frame):
         radio3.pack(anchor="sw", padx=5, pady=2)
 
     def on_mode_select(self):
-        """Handle power mode change."""
+        """Handle power mode change and update radio selection to match DMD mode"""
         if not self.dmd or not self.dmd.connected:
             messagebox.showwarning("DMD Not Connected", "Please connect to DMD first.")
             return
-        
-        mode = self.mode_var.get()
+
+        requested_mode = self.mode_var.get()
         try:
-            if mode == "Normal":
+            if requested_mode == "Normal":
                 if self.dmd.set_normal():
                     print("DMD set to Normal mode")
                 else:
                     messagebox.showerror("Error", "Failed to set Normal mode")
-            elif mode == "Standby":
+            elif requested_mode == "Standby":
                 if self.dmd.set_standby():
                     print("DMD set to Standby mode")
                 else:
                     messagebox.showerror("Error", "Failed to set Standby mode")
-            elif mode == "Idle":
+            elif requested_mode == "Idle":
                 if self.dmd.toggle_idle():
                     print("DMD toggled Idle mode")
                 else:
                     messagebox.showerror("Error", "Failed to toggle Idle mode")
+            # After attempting to set, always update radio to actual mode
+            self._update_power_mode_display()
         except Exception as e:
             messagebox.showerror("Error", f"Power mode change failed: {e}")
+            self._update_power_mode_display()
     
     def auto_connect(self):
         """Auto-connect to DMD on startup."""
@@ -115,7 +118,6 @@ class DMDControls(tk.Frame):
         """Update the radio buttons to reflect current DMD power mode."""
         if not self.dmd or not self.dmd.connected:
             return
-        
         try:
             mode = self.dmd.get_power_mode()
             if mode == 0:
@@ -124,8 +126,11 @@ class DMDControls(tk.Frame):
                 self.mode_var.set("Standby")
             elif mode == 2:
                 self.mode_var.set("Idle")
+            else:
+                self.mode_var.set("")
         except Exception as e:
             print(f"Failed to get power mode: {e}")
+            self.mode_var.set("")
     
     def start_health_check(self):
         """Start periodic health check for DMD connection."""

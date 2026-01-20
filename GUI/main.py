@@ -14,10 +14,7 @@ window.title("GUI Test")
 window.geometry("800x400")
 window.resizable(True, True)
 
-# Initialize camera (shared across panels)
 camera = ASICamera()
-
-# Initialize DMD
 dmd = DMD()
 
 # Configure grid layout
@@ -63,10 +60,10 @@ def show_dmd_controls():
     camera_controls.grid_remove()
     dmd_controls.grid()
 
-dmd_btn = tk.Button(control_panel, text="DMD Controls", command=show_dmd_controls, bg="lightgreen", font=("Arial", 10))
+dmd_btn = tk.Button(control_panel, text="DMD Controls", command=show_dmd_controls, bg="lightgrey", font=("Arial", 10))
 dmd_btn.pack(side="left", padx=5, pady=5)
 
-camera_btn = tk.Button(control_panel, text="Camera Controls", command=show_camera_controls, bg="lightblue", font=("Arial", 10))
+camera_btn = tk.Button(control_panel, text="Camera Controls", command=show_camera_controls, bg="lightgrey", font=("Arial", 10))
 camera_btn.pack(side="left", padx=5, pady=5)
 
 # DMD controls

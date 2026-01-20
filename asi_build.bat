@@ -4,7 +4,7 @@ echo Building ASI Camera View...
 :: Create bin directory if it doesn't exist
 if not exist bin mkdir bin
 
-g++ -o bin\asi_view.exe asi\asi_view.cpp -lcomdlg32 ^
+g++ -o bin\asi_view.dll asi\asi_view.cpp -lcomdlg32 ^
     -Iasi ^
     -IOpenCV-MinGW-Build-OpenCV-4.5.5-x64/include ^
     -Lasi ^

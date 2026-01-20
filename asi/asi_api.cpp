@@ -151,6 +151,19 @@ ASI_API int cam_get_gain_range(int cameraID, long* minVal, long* maxVal) {
     return -1;
 }
 
+// Gets max width and height of the camera sensor
+ASI_API int cam_get_dimension_range(int cameraID, int* minWidth, int* maxWidth, int* minHeight, int* maxHeight) {
+    if (!maxWidth || !maxHeight || !minWidth || !minHeight) return -1;
+    ASI_CAMERA_INFO info;
+    ASI_ERROR_CODE res = ASIGetCameraPropertyByID(cameraID, &info);
+    if (res != ASI_SUCCESS) return -2;
+    *minWidth = 1;
+    *minHeight = 1;
+    *maxWidth = (int)info.MaxWidth;
+    *maxHeight = (int)info.MaxHeight;
+    return 0;
+}
+
 // ============== Video Mode ==============
 
 // Starts video capture
