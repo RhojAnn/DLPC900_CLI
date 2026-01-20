@@ -41,7 +41,6 @@ video_panel = VideoPanel(window)
 video_panel.grid(row=0, column=1, rowspan=3, sticky="nsew")
 video_panel.set_camera(camera)
 
-
 def auto_connect_camera():
     """Auto-connect camera after window is ready."""
     camera_controls.auto_connect(status_panel)

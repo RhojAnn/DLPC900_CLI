@@ -25,6 +25,7 @@ class DMDControls(tk.Frame):
                             font=("Arial", 10))
         stop_btn.pack(anchor="sw", padx=5, pady=5)
         
+        '''
         # Test pattern buttons frame
         test_frame = tk.Frame(self)
         test_frame.pack(anchor="sw", padx=5, pady=5)
@@ -49,7 +50,8 @@ class DMDControls(tk.Frame):
                             fg="white",
                             font=("Arial", 10))
         test_black_btn.pack(side="left", padx=2)
-   
+        '''
+
     def create_power_mode_section(self):
         self.label = tk.Label(self, text="Power Mode", font=("Arial", 11, "bold"))
         self.label.pack(anchor="sw", padx=5, pady=5)
@@ -173,25 +175,35 @@ class DMDControls(tk.Frame):
     def create_button_grid(self, rows=10, cols=10):
         grid_frame = tk.Frame(self)
         grid_frame.pack(padx=5, pady=5)
-        
+
         self.grid_buttons = {}
         self.selected_button = None
-        
+
         for row in range(rows):
             for col in range(cols):
-                btn = tk.Button(grid_frame, width=3, height=1, 
-                              command=lambda r=row, c=col: self.on_button_select(r, c))
+                btn = tk.Button(grid_frame, width=3, height=1,
+                                command=lambda r=row, c=col: self.on_button_select(r, c, lazy_load=True))
                 btn.grid(row=row, column=col, padx=2, pady=2)
                 self.grid_buttons[(row, col)] = btn
 
-    def on_button_select(self, row, col):
+    def on_button_select(self, row, col, lazy_load=False):
         # Deselect previous button
         if self.selected_button:
             self.grid_buttons[self.selected_button].config(bg='SystemButtonFace', relief='raised')
-        
         # Select new button
         self.grid_buttons[(row, col)].config(bg='black', relief='sunken')
         self.selected_button = (row, col)
+
+        # Lazy load: only load and display the BMP when button is pressed
+        if lazy_load:
+            image_path = f"row_pattern/{row}_{col}.bmp"
+            if self.dmd and self.dmd.connected:
+                try:
+                    self.dmd.display_bmp(image_path)
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to display {image_path}: {e}")
+            else:
+                messagebox.showwarning("DMD Not Connected", "Please connect to DMD first.")
 
     def stop_pattern(self):
         # Deselect the currently selected button

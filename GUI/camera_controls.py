@@ -136,12 +136,12 @@ class CameraControls(tk.Frame):
         
         tk.Label(roi_frame, text="Width:", font=("Arial", 10)).pack(side="left", padx=5)
 
-        self.roi_width_var = tk.StringVar(value="1080")
+        self.roi_width_var = tk.StringVar(value="8288")
         self.roi_width_text = tk.Entry(roi_frame, textvariable=self.roi_width_var, width=8)
         self.roi_width_text.pack(side="left", padx=5)
 
         tk.Label(roi_frame, text="Height:", font=("Arial", 10)).pack(side="left", padx=5)
-        self.roi_height_var = tk.StringVar(value="1080")
+        self.roi_height_var = tk.StringVar(value="5644")
         self.roi_height_text = tk.Entry(roi_frame, textvariable=self.roi_height_var, width=8)
         self.roi_height_text.pack(side="left", padx=5)
 
