@@ -14,14 +14,13 @@ class PatternMode:
     DISABLE = 0
     SPLASH = 1
     VIDEO = 2
-    OTF = 3  # On-The-Fly
+    OTF = 3
 
 
 class PowerMode:
     """DMD Power Modes"""
     NORMAL = 0
     STANDBY = 1
-    IDLE = 2
 
 
 class DMD:

@@ -56,12 +56,15 @@ class DMDControls(tk.Frame):
 
         # Radio buttons for power mode selection
         self.mode_var = tk.StringVar(value="Normal")
-        radio1 = tk.Radiobutton(self, text="Normal", variable=self.mode_var, value="Normal", command=self.on_mode_select)
-        radio2 = tk.Radiobutton(self, text="Standby (Recommended for longer rest periods)", variable=self.mode_var, value="Standby", command=self.on_mode_select)
-        radio3 = tk.Radiobutton(self, text="Idle (Recommended for shorter rest periods)", variable=self.mode_var, value="Idle", command=self.on_mode_select)
+        radio1 = tk.Radiobutton(self, text="Normal", 
+                                variable=self.mode_var, 
+                                value="Normal", 
+                                command=self.on_mode_select)
+        radio2 = tk.Radiobutton(self, text="Standby (Recommended for longer rest periods)", 
+                                variable=self.mode_var, value="Standby", 
+                                command=self.on_mode_select)
         radio1.pack(anchor="sw", padx=5, pady=2)
         radio2.pack(anchor="sw", padx=5, pady=2)
-        radio3.pack(anchor="sw", padx=5, pady=2)
 
     def on_mode_select(self):
         """Handle power mode change and update radio selection to match DMD mode"""
@@ -81,16 +84,11 @@ class DMDControls(tk.Frame):
                     print("DMD set to Standby mode")
                 else:
                     messagebox.showerror("Error", "Failed to set Standby mode")
-            elif requested_mode == "Idle":
-                if self.dmd.toggle_idle():
-                    print("DMD toggled Idle mode")
-                else:
-                    messagebox.showerror("Error", "Failed to toggle Idle mode")
-            # After attempting to set, always update radio to actual mode
-            self._update_power_mode_display()
+
+            self.after(1000, self._update_power_mode_display)
         except Exception as e:
             messagebox.showerror("Error", f"Power mode change failed: {e}")
-            self._update_power_mode_display()
+            self.after(1000, self._update_power_mode_display)
     
     def auto_connect(self):
         """Auto-connect to DMD on startup."""
@@ -124,8 +122,6 @@ class DMDControls(tk.Frame):
                 self.mode_var.set("Normal")
             elif mode == 1:
                 self.mode_var.set("Standby")
-            elif mode == 2:
-                self.mode_var.set("Idle")
             else:
                 self.mode_var.set("")
         except Exception as e:
@@ -211,6 +207,7 @@ class DMDControls(tk.Frame):
         else:
             messagebox.showwarning("DMD Not Connected", "Please connect to DMD first.")
     
+    # The following is for testing patterns
     def show_checkerboard(self):
         """Display checkerboard test pattern on DMD."""
         if not self.dmd or not self.dmd.connected:
@@ -252,3 +249,5 @@ class DMDControls(tk.Frame):
                 messagebox.showerror("Error", "Failed to display black pattern")
         except Exception as e:
             messagebox.showerror("Error", f"Black pattern failed: {e}")
+
+    # end of testing patterns

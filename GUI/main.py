@@ -19,7 +19,7 @@ dmd = DMD()
 
 # Configure grid layout
 window.rowconfigure(0, weight=0, minsize=100)
-window.rowconfigure(1, weight=0, minsize=80)
+window.rowconfigure(1, weight=0, minsize=50)
 window.rowconfigure(2, weight=1, minsize=150)
 window.columnconfigure(0, weight=0, minsize=400) 
 window.columnconfigure(1, weight=3)
