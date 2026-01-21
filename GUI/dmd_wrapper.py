@@ -120,6 +120,9 @@ class DMD:
         
         self.dll.dmd_load_half.argtypes = []
         self.dll.dmd_load_half.restype = c_int
+
+        self.dll.dmd_software_reset.argtypes = []
+        self.dll.dmd_software_reset.restype = c_int
     
     # ============== Connection Methods ==============
     
@@ -147,6 +150,7 @@ class DMD:
     def is_connected(self) -> bool:
         """Check if DMD is connected (uses internal state, not USB check)."""
         return self._connected
+    
     
     @property
     def connected(self) -> bool:
@@ -311,6 +315,11 @@ class DMD:
     def load_half(self) -> bool:
         """Display half white/half black pattern on DMD."""
         return self.dll.dmd_load_half() == 0
+
+    def software_reset(self) -> bool:
+        """Perform a software reset via the DLL."""
+        return self.dll.dmd_software_reset() == 0
+
 
 
 # ============== Usage Example ==============

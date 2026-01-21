@@ -9,7 +9,7 @@ class CameraControls(tk.Frame):
         self.camera = camera
         self.video_panel = video_panel
         
-        self.label = tk.Label(self, text="Camera Controls", font=("Arial", 12, "bold"))
+        self.label = tk.Label(self, text="Camera Controls", font=("Arial", 10, "bold"))
         self.label.pack(anchor="sw", padx=5, pady=5)
 
         self.create_camera_mode_section()
@@ -116,78 +116,85 @@ class CameraControls(tk.Frame):
             self.status_panel_ref.set_camera_status(message, connected)
 
     def create_camera_mode_section(self):
-        self.label = tk.Label(self, text="Camera Mode", font=("Arial", 11, "bold"))
-        self.label.pack(anchor="sw", padx=5, pady=5)
+        self.label = tk.Label(self, text="Camera Mode", font=("Arial", 9, "bold"))
+        self.label.pack(anchor="sw", padx=3, pady=3)
+
+        # Place radio buttons and save button in a single horizontal frame
+        mode_frame = tk.Frame(self)
+        mode_frame.pack(anchor="sw", padx=3, pady=3)
 
         # Radio buttons for power mode selection
         self.mode_var = tk.StringVar(value="Video")
-        radio1 = tk.Radiobutton(self, text="Video", variable=self.mode_var, value="Video", command=self.on_mode_select)
-        radio2 = tk.Radiobutton(self, text="Snapshot", variable=self.mode_var, value="Snapshot", command=self.on_mode_select)
-        radio1.pack(anchor="sw", padx=5, pady=2)
-        radio2.pack(anchor="sw", padx=5, pady=2)
+        radio1 = tk.Radiobutton(mode_frame, text="Video", variable=self.mode_var, value="Video", command=self.on_mode_select)
+        radio2 = tk.Radiobutton(mode_frame, text="Snapshot", variable=self.mode_var, value="Snapshot", command=self.on_mode_select)
+        radio1.pack(side="left", padx=(0, 6))
+        radio2.pack(side="left")
+
+        # Create save button as part of the same frame (initially hidden)
+        self.create_snapshot_save_section(parent=mode_frame)
 
     def create_roi_section(self):
-        self.label = tk.Label(self, text="ROI Section", font=("Arial", 11, "bold"))
-        self.label.pack(anchor="sw", padx=5, pady=(15, 5))
+        self.label = tk.Label(self, text="ROI Section", font=("Arial", 9, "bold"))
+        self.label.pack(anchor="sw", padx=3, pady=(10, 3))
 
         # ROI Width and Height
         roi_frame = tk.Frame(self)
-        roi_frame.pack(anchor="w", padx=5, pady=5)
+        roi_frame.pack(anchor="w", padx=3, pady=3)
         
-        tk.Label(roi_frame, text="Width:", font=("Arial", 10)).pack(side="left", padx=5)
+        tk.Label(roi_frame, text="Width:", font=("Arial", 9)).pack(side="left", padx=5)
 
         self.roi_width_var = tk.StringVar(value="8288")
         self.roi_width_text = tk.Entry(roi_frame, textvariable=self.roi_width_var, width=8)
         self.roi_width_text.pack(side="left", padx=5)
 
-        tk.Label(roi_frame, text="Height:", font=("Arial", 10)).pack(side="left", padx=5)
+        tk.Label(roi_frame, text="Height:", font=("Arial", 9)).pack(side="left", padx=5)
         self.roi_height_var = tk.StringVar(value="5644")
         self.roi_height_text = tk.Entry(roi_frame, textvariable=self.roi_height_var, width=8)
         self.roi_height_text.pack(side="left", padx=5)
 
         # Apply ROI button
         self.apply_roi_btn = tk.Button(roi_frame, text="Apply ROI", command=self.on_apply_roi)
-        self.apply_roi_btn.pack(side="left", padx=10)
+        self.apply_roi_btn.pack(side="left", padx=6)
 
         # ROI min/max label (underneath)
         self.roi_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
-        self.roi_range_label.pack(anchor="w", padx=10, pady=(0, 5))
+        self.roi_range_label.pack(anchor="w", padx=6, pady=(0, 3))
 
     def create_position_section(self):
-        self.label = tk.Label(self, text="Position", font=("Arial", 11, "bold"))
-        self.label.pack(anchor="sw", padx=5, pady=(15, 5))
+        self.label = tk.Label(self, text="Position", font=("Arial", 9, "bold"))
+        self.label.pack(anchor="sw", padx=3, pady=(10, 3))
 
         # Position X and Y
         pos_frame = tk.Frame(self)
-        pos_frame.pack(anchor="w", padx=5, pady=5)
+        pos_frame.pack(anchor="w", padx=3, pady=3)
         
-        tk.Label(pos_frame, text="X:", font=("Arial", 10)).pack(side="left", padx=5)
+        tk.Label(pos_frame, text="X:", font=("Arial", 9)).pack(side="left", padx=5)
 
         self.pos_x_var = tk.StringVar(value="0")
         self.pos_x_text = tk.Entry(pos_frame, textvariable=self.pos_x_var, width=8)
         self.pos_x_text.pack(side="left", padx=5)
 
-        tk.Label(pos_frame, text="Y:", font=("Arial", 10)).pack(side="left", padx=5)
+        tk.Label(pos_frame, text="Y:", font=("Arial", 9)).pack(side="left", padx=5)
         self.pos_y_var = tk.StringVar(value="0")
         self.pos_y_text = tk.Entry(pos_frame, textvariable=self.pos_y_var, width=8)
         self.pos_y_text.pack(side="left", padx=5)
 
         # Apply Position button
         self.apply_pos_btn = tk.Button(pos_frame, text="Apply Position", command=self.on_apply_position)
-        self.apply_pos_btn.pack(side="left", padx=10)
+        self.apply_pos_btn.pack(side="left", padx=6)
 
         # Position min/max label (underneath)
         self.pos_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
-        self.pos_range_label.pack(anchor="w", padx=10, pady=(0, 5))
+        self.pos_range_label.pack(anchor="w", padx=6, pady=(0, 3))
 
     def create_exposure_section(self):
-        self.label = tk.Label(self, text="Exposure (μs)", font=("Arial", 11, "bold"))
-        self.label.pack(anchor="sw", padx=5, pady=(15, 5))
+        self.label = tk.Label(self, text="Exposure (μs)", font=("Arial", 9, "bold"))
+        self.label.pack(anchor="sw", padx=3, pady=(10, 3))
 
         # Exposure slider and text box
         exp_frame = tk.Frame(self)
-        exp_frame.pack(anchor="w", padx=5, pady=5)
-        tk.Label(exp_frame, text="Exposure:", font=("Arial", 10)).pack(side="left", padx=5)
+        exp_frame.pack(anchor="w", padx=3, pady=3)
+        tk.Label(exp_frame, text="Exposure:", font=("Arial", 9)).pack(side="left", padx=5)
         self.exposure_slider = tk.Scale(exp_frame, from_=1000, to=1000000, orient="horizontal", length=200, command=self.on_exposure_slider_change)
         self.exposure_slider.pack(side="left", padx=5)
         self.exposure_var = tk.StringVar(value="1000")
@@ -198,16 +205,16 @@ class CameraControls(tk.Frame):
 
         # Exposure min/max label (underneath)
         self.exposure_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
-        self.exposure_range_label.pack(anchor="w", padx=10, pady=(0, 5))
+        self.exposure_range_label.pack(anchor="w", padx=6, pady=(0, 3))
 
     def create_gain_section(self):
-        self.label = tk.Label(self, text="Gain", font=("Arial", 11, "bold"))
-        self.label.pack(anchor="sw", padx=5, pady=(15, 5))
+        self.label = tk.Label(self, text="Gain", font=("Arial", 9, "bold"))
+        self.label.pack(anchor="sw", padx=3, pady=(10, 3))
 
         # Gain slider and text box
         gain_frame = tk.Frame(self)
-        gain_frame.pack(anchor="w", padx=5, pady=5)
-        tk.Label(gain_frame, text="Gain:", font=("Arial", 10)).pack(side="left", padx=5)
+        gain_frame.pack(anchor="w", padx=3, pady=3)
+        tk.Label(gain_frame, text="Gain:", font=("Arial", 9)).pack(side="left", padx=5)
         self.gain_slider = tk.Scale(gain_frame, from_=0, to=100, orient="horizontal", length=200, command=self.on_gain_slider_change)
         self.gain_slider.pack(side="left", padx=5)
         self.gain_var = tk.StringVar(value="0")
@@ -218,24 +225,26 @@ class CameraControls(tk.Frame):
 
         # Gain min/max label (underneath)
         self.gain_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
-        self.gain_range_label.pack(anchor="w", padx=10, pady=(0, 5))
+        self.gain_range_label.pack(anchor="w", padx=6, pady=(0, 3))
 
-    def create_snapshot_save_section(self):
-        # Save button for snapshot mode (initially hidden)
-        self.save_btn = tk.Button(self, text="Save Snapshot", 
+    def create_snapshot_save_section(self, parent=None):
+        # Save button for snapshot mode (initially hidden). Parent allows placement
+        # beside the radio buttons when requested.
+        parent = parent or self
+        self.save_btn = tk.Button(parent, text="Save Snapshot", 
                                    command=self.on_save_snapshot,
                                    bg="green",
                                    fg="white",
-                                   font=("Arial", 10))
-        self.save_btn.pack(anchor="sw", padx=5, pady=5)
-        self.save_btn.pack_forget()  # Hide by default
+                                   font=("Arial", 9))
+        # Do not pack by default; `on_mode_select` manages visibility.
+        self.save_btn.pack_forget()
 
     def on_mode_select(self):
         """Handle video/snapshot mode change."""
         mode = self.mode_var.get()
         
         if mode == "Snapshot":
-            self.save_btn.pack(anchor="sw", padx=5, pady=5)
+            self.save_btn.pack(anchor="sw", padx=3, pady=3)
             # Stop video stream
             if self.video_panel:
                 self.video_panel.stop_stream()

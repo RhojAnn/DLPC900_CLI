@@ -59,6 +59,10 @@ DMD_API int dmd_toggle_idle(void) {
     return cmd_toggle_idle();
 }
 
+DMD_API int dmd_software_reset(void) {
+    return cmd_software_reset();
+}
+
 // ============== Pattern Mode ==============
 
 DMD_API int dmd_set_otf_mode(void) {

@@ -161,3 +161,14 @@ int cmd_set_normal(void){
     }
     return 0;
 }
+
+/**
+ * Reset software
+ */
+int cmd_software_reset(void){
+    if(LCR_SoftwareReset() < 0){
+        printf("ERROR: Cannot perform software reset\n");
+        return -1;
+    }
+    return 0;
+}

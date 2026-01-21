@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+import time
 
 class DMDControls(tk.Frame):
     def __init__(self, parent, dmd=None, status_panel=None, *args, **kwargs):
@@ -7,74 +8,75 @@ class DMDControls(tk.Frame):
         self.dmd = dmd
         self.status_panel = status_panel
         self._health_check_id = None
+        self._standby_locked_until = 0
+        self._standby_unlock_id = None
         
-        self.label = tk.Label(self, text="DMD Controls", font=("Arial", 12, "bold"))
-        self.label.pack(anchor="sw", padx=5, pady=5)
+        self.label = tk.Label(self, text="DMD Controls", font=("Arial", 10, "bold"))
+        self.label.pack(anchor="sw", padx=3, pady=3)
 
-        self.create_power_mode_section()
-        self.create_pattern_entry_controls()
+        # Top area: power mode above row/col controls
+        self.top_frame = tk.Frame(self)
+        self.top_frame.pack(anchor="nw", fill="x", padx=3, pady=(0,3))
+
+        self.create_power_mode_section(parent=self.top_frame)
+        self.create_pattern_entry_controls(parent=self.top_frame)
+        
+        # self.label = tk.Label(self, text="Pattern Selection", font=("Arial", 9, "bold"))
+        # self.label.pack(anchor="sw", padx=5, pady=(15, 5))
+        # self.create_button_grid(10, 10)
+        
         stop_btn = tk.Button(self, text="Stop Pattern", 
-                            command=self.stop_pattern, 
-                            bg="red", 
-                            fg="white",
-                            font=("Arial", 10))
-        stop_btn.pack(anchor="sw", padx=5, pady=5)
-
+                    command=self.stop_pattern, 
+                    bg="red", 
+                    fg="white",
+                    font=("Arial", 9))
+        stop_btn.pack(anchor="sw", padx=3, pady=3)
+        
         '''
-        # Button grid for pattern selection
-        self.label = tk.Label(self, text="Pattern Selection", font=("Arial", 11, "bold"))
-        self.label.pack(anchor="sw", padx=5, pady=(15, 5))
-        self.create_button_grid(10, 10)
-        
-        stop_btn = tk.Button(self, text="Stop Pattern", 
-                            command=self.stop_pattern, 
-                            bg="red", 
-                            fg="white",
-                            font=("Arial", 10))
-        stop_btn.pack(anchor="sw", padx=5, pady=5)
-        
-        
         # Test pattern buttons frame
         test_frame = tk.Frame(self)
-        test_frame.pack(anchor="sw", padx=5, pady=5)
+        test_frame.pack(anchor="sw", padx=3, pady=3)
         
         test_checker_btn = tk.Button(test_frame, text="Test Checkerboard", 
                             command=self.show_checkerboard, 
                             bg="blue", 
                             fg="white",
-                            font=("Arial", 10))
+                            font=("Arial", 9))
         test_checker_btn.pack(side="left", padx=2)
         
         test_white_btn = tk.Button(test_frame, text="Test White", 
                             command=self.show_white, 
                             bg="white", 
                             fg="black",
-                            font=("Arial", 10))
+                            font=("Arial", 9))
         test_white_btn.pack(side="left", padx=2)
         
         test_black_btn = tk.Button(test_frame, text="Test Black", 
                             command=self.show_black, 
                             bg="black", 
                             fg="white",
-                            font=("Arial", 10))
+                            font=("Arial", 9))
         test_black_btn.pack(side="left", padx=2)
         '''
 
-    def create_power_mode_section(self):
-        self.label = tk.Label(self, text="Power Mode", font=("Arial", 11, "bold"))
-        self.label.pack(anchor="sw", padx=5, pady=5)
+    def create_power_mode_section(self, parent=None):
+        parent = parent or self
+        self.label = tk.Label(parent, text="Power Mode", font=("Arial", 9, "bold"))
+        self.label.pack(anchor="w", padx=3, pady=(0,3))
 
         # Radio buttons for power mode selection
         self.mode_var = tk.StringVar(value="Normal")
-        radio1 = tk.Radiobutton(self, text="Normal", 
-                                variable=self.mode_var, 
-                                value="Normal", 
-                                command=self.on_mode_select)
-        radio2 = tk.Radiobutton(self, text="Standby (Recommended for longer rest periods)", 
-                                variable=self.mode_var, value="Standby", 
-                                command=self.on_mode_select)
-        radio1.pack(anchor="sw", padx=5, pady=2)
-        radio2.pack(anchor="sw", padx=5, pady=2)
+        radio_frame = tk.Frame(parent)
+        radio_frame.pack(anchor="w", padx=3)
+        self.radio_normal = tk.Radiobutton(radio_frame, text="Normal", 
+                    variable=self.mode_var, 
+                    value="Normal", 
+                    command=self.on_mode_select)
+        self.radio_standby = tk.Radiobutton(radio_frame, text="Standby (For long rest periods)", 
+                    variable=self.mode_var, value="Standby", 
+                    command=self.on_mode_select)
+        self.radio_normal.pack(side="left", padx=(0, 6))
+        self.radio_standby.pack(side="left")
 
     def on_mode_select(self):
         """Handle power mode change and update radio selection to match DMD mode"""
@@ -178,19 +180,20 @@ class DMDControls(tk.Frame):
         # Schedule next check in 2 seconds
         self._health_check_id = self.after(2000, self._check_dmd_health)
 
-    def create_pattern_entry_controls(self):
-        entry_frame = tk.Frame(self)
-        entry_frame.pack(anchor="w", padx=5, pady=5)
+    def create_pattern_entry_controls(self, parent=None):
+        parent = parent or self
+        entry_frame = tk.Frame(parent)
+        entry_frame.pack(anchor="w", padx=3, pady=(3,3))
         tk.Label(entry_frame, text="Row:").pack(side="left")
         self.row_var = tk.StringVar()
         row_entry = tk.Entry(entry_frame, textvariable=self.row_var, width=4)
-        row_entry.pack(side="left", padx=2)
+        row_entry.pack(side="left", padx=1)
         tk.Label(entry_frame, text="Col:").pack(side="left")
         self.col_var = tk.StringVar()
         col_entry = tk.Entry(entry_frame, textvariable=self.col_var, width=4)
-        col_entry.pack(side="left", padx=2)
+        col_entry.pack(side="left", padx=1)
         display_btn = tk.Button(entry_frame, text="Display Pattern", command=self.display_pattern_by_entry)
-        display_btn.pack(side="left", padx=5)
+        display_btn.pack(side="left", padx=3)
 
     def display_pattern_by_entry(self):
         """Parse row/col from entry and call on_button_select for pattern display."""
@@ -212,7 +215,7 @@ class DMDControls(tk.Frame):
 
     def create_button_grid(self, rows=10, cols=10):
         self.grid_frame = tk.Frame(self)
-        self.grid_frame.pack(padx=5, pady=5)
+        self.grid_frame.pack(padx=3, pady=3)
 
         self.grid_buttons = {}
         self.selected_button = None
@@ -221,7 +224,7 @@ class DMDControls(tk.Frame):
             for col in range(cols):
                 btn = tk.Button(self.grid_frame, width=3, height=1,
                                 command=lambda r=row, c=col: self.on_button_select(r, c, lazy_load=True))
-                btn.grid(row=row, column=col, padx=2, pady=2)
+                btn.grid(row=row, column=col, padx=1, pady=1)
                 self.grid_buttons[(row, col)] = btn
 
     def on_button_select(self, row, col, lazy_load=False):
@@ -245,9 +248,9 @@ class DMDControls(tk.Frame):
 
     def stop_pattern(self):
         # Deselect the currently selected button
-        if self.selected_button:
-            self.grid_buttons[self.selected_button].config(bg='SystemButtonFace', relief='raised')
-            self.selected_button = None
+        # if self.selected_button:
+        #     self.grid_buttons[self.selected_button].config(bg='SystemButtonFace', relief='raised')
+        #     self.selected_button = None
         
         if self.dmd and self.dmd.connected:
             if self.dmd.clear_pattern():
