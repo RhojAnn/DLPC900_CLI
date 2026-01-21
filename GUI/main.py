@@ -63,12 +63,10 @@ def init_hardware():
     camera_controls.grid(row=2, column=0, sticky="nsew", padx=5, pady=5)
     camera_controls.grid_propagate(False)
     camera_controls.config(width=400)
-    # Keep camera controls visible underneath DMD controls
 
     window.after(100, camera_controls.auto_connect, status_panel)
     window.after(200, dmd_controls.auto_connect)
 
-# ---------------- Aspect Ratio (delayed) ----------------
 def keep_video_aspect(event=None):
     grid_info = window.grid_bbox(1, 0)
     size = min(grid_info[2], grid_info[3])
@@ -77,7 +75,6 @@ def keep_video_aspect(event=None):
 def enable_resize_bind():
     window.bind('<Configure>', keep_video_aspect)
 
-# ---------------- Cleanup ----------------
 def on_closing():
     if camera_controls:
         camera_controls.stop_health_check()
@@ -92,7 +89,6 @@ def on_closing():
 
 window.protocol("WM_DELETE_WINDOW", on_closing)
 
-# ---------------- Startup Order ----------------
 window.after(0, window.update_idletasks)
 window.after(100, init_hardware)            
 window.after(300, enable_resize_bind)

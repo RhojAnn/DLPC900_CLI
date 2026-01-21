@@ -54,7 +54,7 @@ int cmd_version(void) {
 /**
  * Gets the current standby delay in seconds
  */
-static int get_standby_delay(void){
+static char get_standby_delay(void){
     unsigned char current_delay;
     
     if(LCR_GetStandbyDelaySec(&current_delay) < 0){
@@ -70,31 +70,13 @@ static int get_standby_delay(void){
  * Gets the current power mode (standby or normal)
  */
 int cmd_get_power_mode(void){
-
-    /*
-    int is_idle = LCR_GetDMDSaverMode();
-
-    if(is_idle < 0){
-        printf("ERROR: Cannot get power mode\n");
+    BOOL is_on_standby = FALSE;
+    int res = LCR_GetPowerMode(&is_on_standby);
+    if (res < 0) {
+        printf("ERROR: Cannot read power mode\n");
         return -1;
-    } else if(is_idle == 1){
-        printf("Power mode: Idle (DMD saver mode enabled)\n");
-        return 0;
     }
-    */
-
-    int is_normal = get_standby_delay();
-
-    if(is_normal < 0){
-        printf("ERROR: Cannot get standby delay\n");
-        return -1;
-    } else if(is_normal != 37){
-        printf("Power mode: Normal\n");
-        return 0;
-    }
-
-    printf("Power mode: Standby\n");
-    return 1;
+    return is_on_standby ? 1 : 0;
 }
 
 /**
@@ -166,9 +148,18 @@ int cmd_set_normal(void){
  * Reset software
  */
 int cmd_software_reset(void){
+
+    if(LCR_SetPowerMode(0x02) < 0){
+        printf("ERROR: Cannot reset software\n");
+        return -1;
+    }
+
+    /*
     if(LCR_SoftwareReset() < 0){
         printf("ERROR: Cannot perform software reset\n");
         return -1;
     }
+        */
+    printf("Software reset initiated\n");
     return 0;
 }

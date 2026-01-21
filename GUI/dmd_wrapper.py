@@ -71,7 +71,7 @@ class DMD:
         ]
         self.dll.dmd_get_version.restype = c_int
         
-        self.dll.dmd_get_power_mode.argtypes = []
+        self.dll.dmd_get_power_mode.argtypes = [POINTER(c_ubyte)]
         self.dll.dmd_get_power_mode.restype = c_int
         
         self.dll.dmd_set_standby.argtypes = []
@@ -207,7 +207,12 @@ class DMD:
         Returns:
             PowerMode.NORMAL (0), PowerMode.STANDBY (1), or -1 on error
         """
-        return self.dll.dmd_get_power_mode()
+        mode = c_ubyte()
+        result = self.dll.dmd_get_power_mode(byref(mode))
+        print("dmd wrapper: ",result)
+        if result != 0:
+            return -1
+        return mode.value
     
     def set_standby(self) -> bool:
         """Set DMD to standby mode."""

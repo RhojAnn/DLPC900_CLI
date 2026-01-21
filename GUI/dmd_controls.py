@@ -6,10 +6,6 @@ class DMDControls(tk.Frame):
     def __init__(self, parent, dmd=None, status_panel=None, *args, **kwargs):
         super().__init__(parent, borderwidth=2, relief="groove", *args, **kwargs)
         self.dmd = dmd
-        self.status_panel = status_panel
-        self._health_check_id = None
-        self._standby_locked_until = 0
-        self._standby_unlock_id = None
         
         self.label = tk.Label(self, text="DMD Controls", font=("Arial", 10, "bold"))
         self.label.pack(anchor="sw", padx=3, pady=3)
@@ -58,6 +54,8 @@ class DMDControls(tk.Frame):
                             font=("Arial", 9))
         test_black_btn.pack(side="left", padx=2)
         '''
+        self.status_panel = status_panel
+        self._health_check_id = None
 
     def create_power_mode_section(self, parent=None):
         parent = parent or self
@@ -157,8 +155,6 @@ class DMDControls(tk.Frame):
             was_connected = self.dmd._connected
             
             if was_connected:
-                # Use get_power_mode() as a lightweight heartbeat
-                # Returns -1 on error (connection lost)
                 mode = self.dmd.get_power_mode()
                 if mode < 0:
                     # Connection lost
