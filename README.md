@@ -4,7 +4,6 @@
 - [ ] Clean code 
 - [ ] Make bmp for blacking out certain sections
 - [ ] Fix standby issue
-- [ ] Add testing section for dmd
 - [ ] Ensure that DMD Communication Status isn't an hardware issue
 
 ## Done

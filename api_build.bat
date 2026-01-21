@@ -5,11 +5,11 @@ echo Building DMD API DLL...
 if not exist bin mkdir bin
 
 gcc -shared -o bin\dmd_api.dll ^
-    src\dmd_api.c ^
-    src\dmd_connection.c ^
-    src\dmd_status.c ^
-    src\dmd_pattern.c ^
-    src\dmd_image.c ^
+    src\dmd\dmd_api.c ^
+    src\dmd\dmd_connection.c ^
+    src\dmd\dmd_status.c ^
+    src\dmd\dmd_pattern.c ^
+    src\dmd\dmd_image.c ^
     lib\API.c ^
     lib\usb.c ^
     lib\pattern.c ^
@@ -30,9 +30,11 @@ if %ERRORLEVEL% EQU 0 (
     echo Build failed!
 )
 
-g++ -shared -o bin\asi_api.dll asi\asi_api.cpp -lcomdlg32 ^
-    -Iasi ^
-    -Lasi ^
+g++ -shared -o bin\asi_api.dll src\asi\asi_api.cpp -lcomdlg32 ^
+    -Isrc\asi ^
+    -Lsrc\asi ^
+    -Ilib ^
+    -Llib ^
     -lASICamera2
 
 if %ERRORLEVEL% EQU 0 (
