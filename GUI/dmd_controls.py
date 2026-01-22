@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from pathlib import Path
+from .bmp_generator import generate_bmp 
 
 class DMDControls(tk.Frame):
     def __init__(self, parent, dmd=None, status_panel=None, *args, **kwargs):
@@ -189,6 +190,9 @@ class DMDControls(tk.Frame):
         parent = parent or self
         entry_frame = tk.Frame(parent)
         entry_frame.pack(anchor="w", padx=3, pady=(3,3))
+        tk.Label(entry_frame, text="Grid:").pack(side="left")
+        self.grid_var = tk.StringVar()
+        row_entry = tk.Entry(entry_frame, textvariable=self.row_var, width=4)
         tk.Label(entry_frame, text="Row:").pack(side="left")
         self.row_var = tk.StringVar()
         row_entry = tk.Entry(entry_frame, textvariable=self.row_var, width=4)
@@ -205,22 +209,31 @@ class DMDControls(tk.Frame):
         try:
             row = int(self.row_var.get())
             col = int(self.col_var.get())
+            grid = int(self.grid_var.get())
         except ValueError:
             messagebox.showerror("Invalid Input", "Row and Col must be integers.")
             return
         
-        image_path = Path(__file__).parent.parent / "row_pattern" / f"{row}_{col}.bmp"
-        if not image_path.exists():
-            messagebox.showerror("Out of Range", f"Please enter a 10x10 grid value (0-9).")
+        if not (0 <= row <= grid and 0 <= col <= grid):
             return
 
-        if self.dmd and self.dmd.connected:
-            try:
-                self.dmd.display_bmp(str(image_path))
-            except Exception as e:
-                messagebox.showerror("Error", f"Failed to display {image_path}: {e}")
-        else:
-            messagebox.showwarning("DMD Not Connected", "Please connect to DMD first.")
+        generate_bmp(row, col, grid)
+
+        def delayed_display():
+            image_path = Path(__file__).parent.parent / "row_pattern" / f"current.bmp"
+            if not image_path.exists():
+                messagebox.showerror("Error", f"BMP file could not be generated")
+                return
+
+            if self.dmd and self.dmd.connected:
+                try:
+                    self.dmd.display_bmp(str(image_path))
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to display {image_path}: {e}")
+            else:
+                messagebox.showwarning("DMD Not Connected", "Please connect to DMD first.")
+
+        self.after(2000, delayed_display)
 
     # 10x10 button grid for pattern selection. Did not continue since it lags the program
     def create_button_grid(self, rows=10, cols=10):

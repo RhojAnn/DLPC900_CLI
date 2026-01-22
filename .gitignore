@@ -1,0 +1,6 @@
+# Ignore VSCode workspace settings that may be local or managed by OneDrive
+.vscode/c_cpp_properties.json
+
+# Ignore other VSCode local settings
+.vscode/launch.json
+.vscode/settings.json
