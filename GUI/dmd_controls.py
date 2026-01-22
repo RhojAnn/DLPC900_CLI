@@ -59,11 +59,7 @@ class DMDControls(tk.Frame):
         # self.after(100, self._update_power_mode_display)
 
 
-<<<<<<< HEAD
 # ============== Connection/Status ==============
-=======
-# ---------------- Connection/Status ----------------
->>>>>>> f89bcf1bfcc3f6d153fdc69afc9c7768052b6bb0
 
     def auto_connect(self):
         """Auto-connect to DMD on startup"""
@@ -83,30 +79,7 @@ class DMDControls(tk.Frame):
             print(f"DMD auto-connect error: {e}")
             if self.status_panel:
                 self.status_panel.set_dmd_status(f"Error: {e}", False)
-<<<<<<< HEAD
   
-=======
-
-    def _update_power_mode_display(self):
-        """Update the radio buttons to reflect current DMD power mode."""
-        if not self.dmd or not self.dmd.connected:
-            return
-        try:
-            mode = self.dmd.get_power_mode()
-            if mode == 0:
-                self.mode_var.set("Normal")
-                print("_update_power_mode_display: Normal mode")
-            elif mode == 1:
-                self.mode_var.set("Standby")
-                print("_update_power_mode_display: Standby mode")
-            else:
-                self.mode_var.set("")
-                messagebox.showerror("Error", "DMD returned unknown power mode")
-        except Exception as e:
-            print(f"Failed to get power mode: {e}")
-            self.mode_var.set("")
-    
->>>>>>> f89bcf1bfcc3f6d153fdc69afc9c7768052b6bb0
     def start_health_check(self):
         """Start periodic health check for DMD connection."""
         self._check_dmd_health()
@@ -147,7 +120,6 @@ class DMDControls(tk.Frame):
         # Schedule next check in 2 seconds
         self._health_check_id = self.after(2000, self._check_dmd_health)
 
-<<<<<<< HEAD
     def _update_power_mode_display(self):
         """Update the radio buttons to reflect current DMD power mode."""
         if not self.dmd or not self.dmd.connected:
@@ -166,12 +138,8 @@ class DMDControls(tk.Frame):
         except Exception as e:
             print(f"Failed to get power mode: {e}")
             self.mode_var.set("")
-    
 
 # ============== Power Mode ==============
-=======
-# ---------------- Power Mode ----------------
->>>>>>> f89bcf1bfcc3f6d153fdc69afc9c7768052b6bb0
 
     def create_power_mode_section(self, parent=None):
         parent = parent or self
@@ -210,21 +178,12 @@ class DMDControls(tk.Frame):
                 else:
                     messagebox.showerror("Error", "Failed to set Standby mode")
 
-<<<<<<< HEAD
             self.after(100, self._update_power_mode_display)
         except Exception as e:
             messagebox.showerror("Error", f"Power mode change failed: {e}")
             self.after(100, self._update_power_mode_display)
  
 # ============== Pattern Selection ==============
-=======
-            self.after(50, self._update_power_mode_display)
-        except Exception as e:
-            messagebox.showerror("Error", f"Power mode change failed: {e}")
-            self.after(50, self._update_power_mode_display)
- 
-# ---------------- Pattern Selection ----------------
->>>>>>> f89bcf1bfcc3f6d153fdc69afc9c7768052b6bb0
 
     def create_pattern_entry(self, parent=None):
         parent = parent or self
@@ -317,11 +276,7 @@ class DMDControls(tk.Frame):
         else:
             messagebox.showwarning("DMD Not Connected", "Please connect to DMD first.")
     
-<<<<<<< HEAD
 # ============== Test Patterns ==============
-=======
-# ---------------- Test Patterns ----------------
->>>>>>> f89bcf1bfcc3f6d153fdc69afc9c7768052b6bb0
     def show_checkerboard(self):
         """Display checkerboard test pattern on DMD."""
         if not self.dmd or not self.dmd.connected:

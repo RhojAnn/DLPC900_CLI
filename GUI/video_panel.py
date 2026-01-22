@@ -4,8 +4,6 @@ import numpy as np
 
 
 class VideoPanel(tk.Frame):
-    """Panel for displaying live camera video feed."""
-    
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, bg="black", *args, **kwargs)
         
@@ -13,20 +11,16 @@ class VideoPanel(tk.Frame):
         self.is_streaming = False
         self.update_interval = 33  # ~30 FPS (milliseconds)
         
-        # Canvas for displaying video
         self.canvas = tk.Canvas(self, bg="black", highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
         
-        # Placeholder text
         self.placeholder_text = self.canvas.create_text(
             0, 0, text="No Camera Feed", fill="gray", font=("Arial", 16)
         )
         
-        # Store current image reference (prevents garbage collection)
         self._current_image = None
         self._image_id = None
         
-        # Bind resize event
         self.canvas.bind("<Configure>", self._on_resize)
     
     def _on_resize(self, event):

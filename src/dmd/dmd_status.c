@@ -62,7 +62,7 @@ static char get_standby_delay(void){
         return -1;
     }
 
-    printf("Standby delay: %d seconds\n", current_delay);
+    // printf("Standby delay: %d seconds\n", current_delay);
     return current_delay;
 }
 

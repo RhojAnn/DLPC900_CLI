@@ -209,7 +209,6 @@ class DMD:
         """
         mode = c_ubyte()
         result = self.dll.dmd_get_power_mode(byref(mode))
-        print("dmd wrapper: ",mode)
         if result != 0:
             return -1
         return mode.value
@@ -324,8 +323,6 @@ class DMD:
     def software_reset(self) -> bool:
         """Perform a software reset via the DLL."""
         return self.dll.dmd_software_reset() == 0
-
-
 
 # ============== Usage Example ==============
 

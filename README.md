@@ -3,10 +3,10 @@
 ## ToDos (according to priority)
 - [ ] Clean code 
 - [ ] Make bmp for blacking out certain sections
-- [ ] Fix standby issue
 - [ ] Ensure that DMD Communication Status isn't an hardware issue
 
 ## Done
+- [x] Fix standby issue
 - [x] Control exposure and gain in camera
 - [x] Turn code into a dll file for python wrapper GUI
 - [x] Make python wrapper for GUI

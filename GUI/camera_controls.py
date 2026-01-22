@@ -123,7 +123,7 @@ class CameraControls(tk.Frame):
             messagebox.showerror("Error", "No camera instance")
             return
         
-        # Get ROI from input fields
+        # Get ROI
         try:
             width = int(self.roi_width_var.get())
             height = int(self.roi_height_var.get())
@@ -137,7 +137,7 @@ class CameraControls(tk.Frame):
             self.connect_btn.config(state="disabled")
             self.disconnect_btn.config(state="normal")
             
-            # Update exposure/gain ranges and position
+            # Update exposure/gain ranges
             self._update_control_ranges()
             
             # Start video if in video mode
@@ -184,9 +184,6 @@ class CameraControls(tk.Frame):
         
         if mode == "Snapshot":
             self.save_btn.pack(anchor="sw", padx=3, pady=3)
-            # Stop video stream
-            if self.video_panel:
-                self.video_panel.stop_stream()
         else:
             self.save_btn.pack_forget()
             # Start video stream if connected
@@ -211,22 +208,18 @@ class CameraControls(tk.Frame):
             messagebox.showerror("Error", "Camera not connected")
             return
         
-        # Stop video if running
         if self.video_panel:
             self.video_panel.stop_stream()
         
-        # Capture snapshot
         image = self.camera.snap(timeout_ms=30000)
         
         if image is None:
             messagebox.showerror("Error", "Failed to capture snapshot")
             return
         
-        # Show preview
         if self.video_panel:
             self.video_panel.display_single_frame(image)
         
-        # Save dialog
         filename = filedialog.asksaveasfilename(
             defaultextension=".png",
             initialfile="snap_image.png",
@@ -291,92 +284,6 @@ class CameraControls(tk.Frame):
         # Position min/max label (underneath)
         self.pos_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
         self.pos_range_label.pack(anchor="w", padx=6, pady=(0, 3))
-
-# ============== Exposure ==============
-
-    def create_exposure_section(self):
-        self.label = tk.Label(self, text="Exposure (μs)", font=("Arial", 9, "bold"))
-        self.label.pack(anchor="sw", padx=3, pady=(10, 3))
-
-        # Exposure slider and text box
-        exp_frame = tk.Frame(self)
-        exp_frame.pack(anchor="w", padx=3, pady=3)
-        tk.Label(exp_frame, text="Exposure:", font=("Arial", 9)).pack(side="left", padx=5)
-        self.exposure_slider = tk.Scale(exp_frame, from_=1000, to=1000000, orient="horizontal", length=200, command=self.on_exposure_slider_change)
-        self.exposure_slider.pack(side="left", padx=5)
-        self.exposure_var = tk.StringVar(value="1000")
-        self.exposure_text = tk.Entry(exp_frame, textvariable=self.exposure_var, width=10)
-        self.exposure_text.pack(side="left", padx=5)
-        self.exposure_text.bind("<Return>", self.on_exposure_text_change)
-        self.exposure_text.bind("<FocusOut>", self.on_exposure_text_change)
-
-        # Exposure min/max label (underneath)
-        self.exposure_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
-        self.exposure_range_label.pack(anchor="w", padx=6, pady=(0, 3))
-
-    def on_exposure_slider_change(self, value):
-        """Update exposure from slider."""
-        self.exposure_var.set(value)
-        if self.camera and self.camera.is_connected:
-            self.camera.set_exposure(int(value))
-    
-    def on_exposure_text_change(self, event=None):
-        """Update exposure from text entry."""
-        try:
-            value = int(self.exposure_var.get())
-            # Clamp to slider range
-            min_val = int(self.exposure_slider.cget("from"))
-            max_val = int(self.exposure_slider.cget("to"))
-            value = max(min_val, min(max_val, value))
-            self.exposure_slider.set(value)
-            self.exposure_var.set(str(value))
-            if self.camera and self.camera.is_connected:
-                self.camera.set_exposure(value)
-        except ValueError:
-            pass  # Invalid input, ignore
-
-# ============== Gain ==============
-
-    def create_gain_section(self):
-        self.label = tk.Label(self, text="Gain", font=("Arial", 9, "bold"))
-        self.label.pack(anchor="sw", padx=3, pady=(10, 3))
-
-        # Gain slider and text box
-        gain_frame = tk.Frame(self)
-        gain_frame.pack(anchor="w", padx=3, pady=3)
-        tk.Label(gain_frame, text="Gain:", font=("Arial", 9)).pack(side="left", padx=5)
-        self.gain_slider = tk.Scale(gain_frame, from_=0, to=100, orient="horizontal", length=200, command=self.on_gain_slider_change)
-        self.gain_slider.pack(side="left", padx=5)
-        self.gain_var = tk.StringVar(value="0")
-        self.gain_text = tk.Entry(gain_frame, textvariable=self.gain_var, width=6)
-        self.gain_text.pack(side="left", padx=5)
-        self.gain_text.bind("<Return>", self.on_gain_text_change)
-        self.gain_text.bind("<FocusOut>", self.on_gain_text_change)
-
-        # Gain min/max label (underneath)
-        self.gain_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
-        self.gain_range_label.pack(anchor="w", padx=6, pady=(0, 3))
-
-    def on_gain_slider_change(self, value):
-        """Update gain from slider."""
-        self.gain_var.set(value)
-        if self.camera and self.camera.is_connected:
-            self.camera.set_gain(int(value))
-    
-    def on_gain_text_change(self, event=None):
-        """Update gain from text entry."""
-        try:
-            value = int(self.gain_var.get())
-            # Clamp to slider range
-            min_val = int(self.gain_slider.cget("from"))
-            max_val = int(self.gain_slider.cget("to"))
-            value = max(min_val, min(max_val, value))
-            self.gain_slider.set(value)
-            self.gain_var.set(str(value))
-            if self.camera and self.camera.is_connected:
-                self.camera.set_gain(value)
-        except ValueError:
-            pass  # Invalid input, ignore
 
     def on_apply_roi(self):
         """Apply ROI settings."""
@@ -459,4 +366,88 @@ class CameraControls(tk.Frame):
         max_y = max(0, max_h - roi_h)
         self.pos_range_label.config(text=f"Position X: [0-{max_x}], Y: [0-{max_y}]")
 
+# ============== Exposure ==============
+
+    def create_exposure_section(self):
+        self.label = tk.Label(self, text="Exposure (μs)", font=("Arial", 9, "bold"))
+        self.label.pack(anchor="sw", padx=3, pady=(10, 3))
+
+        # Exposure slider and text box
+        exp_frame = tk.Frame(self)
+        exp_frame.pack(anchor="w", padx=3, pady=3)
+        tk.Label(exp_frame, text="Exposure:", font=("Arial", 9)).pack(side="left", padx=5)
+        self.exposure_slider = tk.Scale(exp_frame, from_=1000, to=1000000, orient="horizontal", length=200, command=self.on_exposure_slider_change)
+        self.exposure_slider.pack(side="left", padx=5)
+        self.exposure_var = tk.StringVar(value="1000")
+        self.exposure_text = tk.Entry(exp_frame, textvariable=self.exposure_var, width=10)
+        self.exposure_text.pack(side="left", padx=5)
+        self.exposure_text.bind("<Return>", self.on_exposure_text_change)
+        self.exposure_text.bind("<FocusOut>", self.on_exposure_text_change)
+
+        # Exposure min/max label (underneath)
+        self.exposure_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
+        self.exposure_range_label.pack(anchor="w", padx=6, pady=(0, 3))
+
+    def on_exposure_slider_change(self, value):
+        """Update exposure from slider."""
+        self.exposure_var.set(value)
+        if self.camera and self.camera.is_connected:
+            self.camera.set_exposure(int(value))
     
+    def on_exposure_text_change(self, event=None):
+        """Update exposure from text entry."""
+        try:
+            value = int(self.exposure_var.get())
+            # Clamp to slider range
+            min_val = int(self.exposure_slider.cget("from"))
+            max_val = int(self.exposure_slider.cget("to"))
+            value = max(min_val, min(max_val, value))
+            self.exposure_slider.set(value)
+            self.exposure_var.set(str(value))
+            if self.camera and self.camera.is_connected:
+                self.camera.set_exposure(value)
+        except ValueError:
+            messagebox.showerror("Error", "Invalid exposure value")
+
+# ============== Gain ==============
+
+    def create_gain_section(self):
+        self.label = tk.Label(self, text="Gain", font=("Arial", 9, "bold"))
+        self.label.pack(anchor="sw", padx=3, pady=(10, 3))
+
+        # Gain slider and text box
+        gain_frame = tk.Frame(self)
+        gain_frame.pack(anchor="w", padx=3, pady=3)
+        tk.Label(gain_frame, text="Gain:", font=("Arial", 9)).pack(side="left", padx=5)
+        self.gain_slider = tk.Scale(gain_frame, from_=0, to=100, orient="horizontal", length=200, command=self.on_gain_slider_change)
+        self.gain_slider.pack(side="left", padx=5)
+        self.gain_var = tk.StringVar(value="0")
+        self.gain_text = tk.Entry(gain_frame, textvariable=self.gain_var, width=6)
+        self.gain_text.pack(side="left", padx=5)
+        self.gain_text.bind("<Return>", self.on_gain_text_change)
+        self.gain_text.bind("<FocusOut>", self.on_gain_text_change)
+
+        # Gain min/max label (underneath)
+        self.gain_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
+        self.gain_range_label.pack(anchor="w", padx=6, pady=(0, 3))
+
+    def on_gain_slider_change(self, value):
+        """Update gain from slider."""
+        self.gain_var.set(value)
+        if self.camera and self.camera.is_connected:
+            self.camera.set_gain(int(value))
+    
+    def on_gain_text_change(self, event=None):
+        """Update gain from text entry."""
+        try:
+            value = int(self.gain_var.get())
+            # Clamp to slider range
+            min_val = int(self.gain_slider.cget("from"))
+            max_val = int(self.gain_slider.cget("to"))
+            value = max(min_val, min(max_val, value))
+            self.gain_slider.set(value)
+            self.gain_var.set(str(value))
+            if self.camera and self.camera.is_connected:
+                self.camera.set_gain(value)
+        except ValueError:
+            messagebox.showerror("Error", "Invalid gain value")
