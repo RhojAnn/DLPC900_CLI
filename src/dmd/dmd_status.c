@@ -62,7 +62,7 @@ static char get_standby_delay(void){
         return -1;
     }
 
-    // printf("Standby delay: %d seconds\n", current_delay);
+    printf("Standby delay: %d seconds\n", current_delay);
     return current_delay;
 }
 
@@ -70,9 +70,11 @@ static char get_standby_delay(void){
  * Gets the current power mode (standby or normal)
  */
 int cmd_get_power_mode(void){
+    if(get_standby_delay() == 37) return 1;
+
     BOOL is_on_standby = FALSE;
-    int res = LCR_GetPowerMode(&is_on_standby);
-    if (res < 0) {
+    int ret = LCR_GetPowerMode(&is_on_standby);
+    if (ret < 0) {
         printf("ERROR: Cannot read power mode\n");
         return -1;
     }

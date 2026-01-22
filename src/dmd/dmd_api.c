@@ -43,12 +43,11 @@ DMD_API int dmd_get_version(unsigned int* app, unsigned int* api,
     return LCR_GetVersion(app, api, swconfig, seqconfig);
 }
 
-DMD_API int dmd_get_power_mode(unsigned char* is_on_standby) {
+DMD_API int dmd_get_power_mode(unsigned int* is_on_standby) {
     if (!is_on_standby) return -1;
-    BOOL standby = 0;
-    int res = LCR_GetPowerMode(&standby);
-    if (res < 0) return res;
-    *is_on_standby = standby ? 1 : 0;
+    int res = cmd_get_power_mode();
+    if (res < 0) return -1;
+    *is_on_standby = (unsigned int)res;
     return 0;
 }
 

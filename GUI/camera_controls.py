@@ -19,10 +19,12 @@ class CameraControls(tk.Frame):
         self.create_gain_section()
         self.create_snapshot_save_section()
         
-        self.status_panel_ref = None  # Reference to status panel
-        self._health_check_id = None  # For periodic health check
-        self._was_connected = False   # Track previous connection state
+        self.status_panel_ref = None
+        self._health_check_id = None
+        self._was_connected = False
     
+# ============== Connection/Status ==============
+
     def auto_connect(self, status_panel=None):
         """Automatically connect to camera on startup."""
         self.status_panel_ref = status_panel
@@ -115,6 +117,49 @@ class CameraControls(tk.Frame):
         if self.status_panel_ref:
             self.status_panel_ref.set_camera_status(message, connected)
 
+    def on_connect(self):
+        """Connect to camera."""
+        if not self.camera:
+            messagebox.showerror("Error", "No camera instance")
+            return
+        
+        # Get ROI from input fields
+        try:
+            width = int(self.roi_width_var.get())
+            height = int(self.roi_height_var.get())
+        except ValueError:
+            width, height = 1080, 1080
+        
+        result = self.camera.init_camera(width, height)
+        
+        if result == 0:
+            self.status_label.config(text="Connected", fg="green")
+            self.connect_btn.config(state="disabled")
+            self.disconnect_btn.config(state="normal")
+            
+            # Update exposure/gain ranges and position
+            self._update_control_ranges()
+            
+            # Start video if in video mode
+            if self.mode_var.get() == "Video" and self.video_panel:
+                self.video_panel.start_stream()
+        else:
+            messagebox.showerror("Error", f"Failed to connect: error {result}")
+    
+    def on_disconnect(self):
+        """Disconnect from camera."""
+        if self.video_panel:
+            self.video_panel.stop_stream()
+        
+        if self.camera:
+            self.camera.stop_camera()
+        
+        self.status_label.config(text="Not connected", fg="gray")
+        self.connect_btn.config(state="normal")
+        self.disconnect_btn.config(state="disabled")
+ 
+# ============== Camera Mode ==============
+
     def create_camera_mode_section(self):
         self.label = tk.Label(self, text="Camera Mode", font=("Arial", 9, "bold"))
         self.label.pack(anchor="sw", padx=3, pady=3)
@@ -132,6 +177,66 @@ class CameraControls(tk.Frame):
 
         # Create save button as part of the same frame (initially hidden)
         self.create_snapshot_save_section(parent=mode_frame)
+
+    def on_mode_select(self):
+        """Handle video/snapshot mode change."""
+        mode = self.mode_var.get()
+        
+        if mode == "Snapshot":
+            self.save_btn.pack(anchor="sw", padx=3, pady=3)
+            # Stop video stream
+            if self.video_panel:
+                self.video_panel.stop_stream()
+        else:
+            self.save_btn.pack_forget()
+            # Start video stream if connected
+            if self.camera and self.camera.is_connected and self.video_panel:
+                self.video_panel.start_stream()
+
+    def create_snapshot_save_section(self, parent=None):
+        # Save button for snapshot mode (initially hidden). Parent allows placement
+        # beside the radio buttons when requested.
+        parent = parent or self
+        self.save_btn = tk.Button(parent, text="Save Snapshot", 
+                                   command=self.on_save_snapshot,
+                                   bg="green",
+                                   fg="white",
+                                   font=("Arial", 9))
+        # Do not pack by default; `on_mode_select` manages visibility.
+        self.save_btn.pack_forget()
+
+    def on_save_snapshot(self):
+        """Capture and save a snapshot."""
+        if not self.camera or not self.camera.is_connected:
+            messagebox.showerror("Error", "Camera not connected")
+            return
+        
+        # Stop video if running
+        if self.video_panel:
+            self.video_panel.stop_stream()
+        
+        # Capture snapshot
+        image = self.camera.snap(timeout_ms=30000)
+        
+        if image is None:
+            messagebox.showerror("Error", "Failed to capture snapshot")
+            return
+        
+        # Show preview
+        if self.video_panel:
+            self.video_panel.display_single_frame(image)
+        
+        # Save dialog
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".png",
+            initialfile="snap_image.png",
+            filetypes=[("PNG Files", "*.png"), ("TIFF Files", "*.tiff"), ("All Files", "*.*")]
+        )
+        if filename:
+            self.camera.save_image(image, filename)
+            messagebox.showinfo("Save Snapshot", f"Snapshot saved to {filename}")
+
+# ============== ROI/Position ==============
 
     def create_roi_section(self):
         self.label = tk.Label(self, text="ROI Section", font=("Arial", 9, "bold"))
@@ -187,6 +292,8 @@ class CameraControls(tk.Frame):
         self.pos_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
         self.pos_range_label.pack(anchor="w", padx=6, pady=(0, 3))
 
+# ============== Exposure ==============
+
     def create_exposure_section(self):
         self.label = tk.Label(self, text="Exposure (μs)", font=("Arial", 9, "bold"))
         self.label.pack(anchor="sw", padx=3, pady=(10, 3))
@@ -206,53 +313,6 @@ class CameraControls(tk.Frame):
         # Exposure min/max label (underneath)
         self.exposure_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
         self.exposure_range_label.pack(anchor="w", padx=6, pady=(0, 3))
-
-    def create_gain_section(self):
-        self.label = tk.Label(self, text="Gain", font=("Arial", 9, "bold"))
-        self.label.pack(anchor="sw", padx=3, pady=(10, 3))
-
-        # Gain slider and text box
-        gain_frame = tk.Frame(self)
-        gain_frame.pack(anchor="w", padx=3, pady=3)
-        tk.Label(gain_frame, text="Gain:", font=("Arial", 9)).pack(side="left", padx=5)
-        self.gain_slider = tk.Scale(gain_frame, from_=0, to=100, orient="horizontal", length=200, command=self.on_gain_slider_change)
-        self.gain_slider.pack(side="left", padx=5)
-        self.gain_var = tk.StringVar(value="0")
-        self.gain_text = tk.Entry(gain_frame, textvariable=self.gain_var, width=6)
-        self.gain_text.pack(side="left", padx=5)
-        self.gain_text.bind("<Return>", self.on_gain_text_change)
-        self.gain_text.bind("<FocusOut>", self.on_gain_text_change)
-
-        # Gain min/max label (underneath)
-        self.gain_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
-        self.gain_range_label.pack(anchor="w", padx=6, pady=(0, 3))
-
-    def create_snapshot_save_section(self, parent=None):
-        # Save button for snapshot mode (initially hidden). Parent allows placement
-        # beside the radio buttons when requested.
-        parent = parent or self
-        self.save_btn = tk.Button(parent, text="Save Snapshot", 
-                                   command=self.on_save_snapshot,
-                                   bg="green",
-                                   fg="white",
-                                   font=("Arial", 9))
-        # Do not pack by default; `on_mode_select` manages visibility.
-        self.save_btn.pack_forget()
-
-    def on_mode_select(self):
-        """Handle video/snapshot mode change."""
-        mode = self.mode_var.get()
-        
-        if mode == "Snapshot":
-            self.save_btn.pack(anchor="sw", padx=3, pady=3)
-            # Stop video stream
-            if self.video_panel:
-                self.video_panel.stop_stream()
-        else:
-            self.save_btn.pack_forget()
-            # Start video stream if connected
-            if self.camera and self.camera.is_connected and self.video_panel:
-                self.video_panel.start_stream()
 
     def on_exposure_slider_change(self, value):
         """Update exposure from slider."""
@@ -274,6 +334,28 @@ class CameraControls(tk.Frame):
                 self.camera.set_exposure(value)
         except ValueError:
             pass  # Invalid input, ignore
+
+# ============== Gain ==============
+
+    def create_gain_section(self):
+        self.label = tk.Label(self, text="Gain", font=("Arial", 9, "bold"))
+        self.label.pack(anchor="sw", padx=3, pady=(10, 3))
+
+        # Gain slider and text box
+        gain_frame = tk.Frame(self)
+        gain_frame.pack(anchor="w", padx=3, pady=3)
+        tk.Label(gain_frame, text="Gain:", font=("Arial", 9)).pack(side="left", padx=5)
+        self.gain_slider = tk.Scale(gain_frame, from_=0, to=100, orient="horizontal", length=200, command=self.on_gain_slider_change)
+        self.gain_slider.pack(side="left", padx=5)
+        self.gain_var = tk.StringVar(value="0")
+        self.gain_text = tk.Entry(gain_frame, textvariable=self.gain_var, width=6)
+        self.gain_text.pack(side="left", padx=5)
+        self.gain_text.bind("<Return>", self.on_gain_text_change)
+        self.gain_text.bind("<FocusOut>", self.on_gain_text_change)
+
+        # Gain min/max label (underneath)
+        self.gain_range_label = tk.Label(self, text="", font=("Arial", 8), fg="gray")
+        self.gain_range_label.pack(anchor="w", padx=6, pady=(0, 3))
 
     def on_gain_slider_change(self, value):
         """Update gain from slider."""
@@ -336,78 +418,6 @@ class CameraControls(tk.Frame):
         
         print(f"Position applied: ({pos_x}, {pos_y})")
 
-    def on_save_snapshot(self):
-        """Capture and save a snapshot."""
-        if not self.camera or not self.camera.is_connected:
-            messagebox.showerror("Error", "Camera not connected")
-            return
-        
-        # Stop video if running
-        if self.video_panel:
-            self.video_panel.stop_stream()
-        
-        # Capture snapshot
-        image = self.camera.snap(timeout_ms=30000)
-        
-        if image is None:
-            messagebox.showerror("Error", "Failed to capture snapshot")
-            return
-        
-        # Show preview
-        if self.video_panel:
-            self.video_panel.display_single_frame(image)
-        
-        # Save dialog
-        filename = filedialog.asksaveasfilename(
-            defaultextension=".png",
-            initialfile="snap_image.png",
-            filetypes=[("PNG Files", "*.png"), ("TIFF Files", "*.tiff"), ("All Files", "*.*")]
-        )
-        if filename:
-            self.camera.save_image(image, filename)
-            messagebox.showinfo("Save Snapshot", f"Snapshot saved to {filename}")
-    
-    def on_connect(self):
-        """Connect to camera."""
-        if not self.camera:
-            messagebox.showerror("Error", "No camera instance")
-            return
-        
-        # Get ROI from input fields
-        try:
-            width = int(self.roi_width_var.get())
-            height = int(self.roi_height_var.get())
-        except ValueError:
-            width, height = 1080, 1080
-        
-        result = self.camera.init_camera(width, height)
-        
-        if result == 0:
-            self.status_label.config(text="Connected", fg="green")
-            self.connect_btn.config(state="disabled")
-            self.disconnect_btn.config(state="normal")
-            
-            # Update exposure/gain ranges and position
-            self._update_control_ranges()
-            
-            # Start video if in video mode
-            if self.mode_var.get() == "Video" and self.video_panel:
-                self.video_panel.start_stream()
-        else:
-            messagebox.showerror("Error", f"Failed to connect: error {result}")
-    
-    def on_disconnect(self):
-        """Disconnect from camera."""
-        if self.video_panel:
-            self.video_panel.stop_stream()
-        
-        if self.camera:
-            self.camera.stop_camera()
-        
-        self.status_label.config(text="Not connected", fg="gray")
-        self.connect_btn.config(state="normal")
-        self.disconnect_btn.config(state="disabled")
-    
     def _update_control_ranges(self):
         """Update slider ranges and min/max hints based on camera capabilities."""
         if not self.camera or not self.camera.is_connected:

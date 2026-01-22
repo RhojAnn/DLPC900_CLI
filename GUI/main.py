@@ -13,14 +13,14 @@ window.title("Microscopy Control Panel")
 window.geometry("800x400")
 window.resizable(True, True)
 
-# ---------------- Layout ----------------
+# ============== Layout ==============
 window.rowconfigure(0, weight=0, minsize=100)
 window.rowconfigure(1, weight=0, minsize=100)
 window.rowconfigure(2, weight=1, minsize=150)
 window.columnconfigure(0, weight=0, minsize=400)
 window.columnconfigure(1, weight=3)
 
-# ---------------- UI ----------------
+# ============== UI ==============
 status_panel = StatusPanel(window)
 status_panel.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 status_panel.grid_propagate(False)
@@ -34,13 +34,13 @@ control_panel.config(width=400)
 video_panel = VideoPanel(window)
 video_panel.grid(row=0, column=1, rowspan=3, sticky="nsew")
 
-# ---------------- Globals  ----------------
+# ============== Globals ==============
 camera = None
 dmd = None
 camera_controls = None
 dmd_controls = None
 
-# ---------------- Init ----------------
+# ============== Init ==============
 def init_hardware():
     global camera, dmd, camera_controls, dmd_controls
 
