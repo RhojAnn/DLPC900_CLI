@@ -209,7 +209,7 @@ class DMD:
         """
         mode = c_ubyte()
         result = self.dll.dmd_get_power_mode(byref(mode))
-        print("dmd wrapper: ",result)
+        print("dmd wrapper: ",mode)
         if result != 0:
             return -1
         return mode.value

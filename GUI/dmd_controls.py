@@ -86,12 +86,12 @@ class DMDControls(tk.Frame):
         try:
             if requested_mode == "Normal":
                 if self.dmd.set_normal():
-                    print("DMD set to Normal mode")
+                    print("on_mode_select(): DMD set to Normal mode")
                 else:
                     messagebox.showerror("Error", "Failed to set Normal mode")
             elif requested_mode == "Standby":
                 if self.dmd.set_standby():
-                    print("DMD set to Standby mode")
+                    print("on_mode_select(): DMD set to Standby mode")
                 else:
                     messagebox.showerror("Error", "Failed to set Standby mode")
 
@@ -101,7 +101,7 @@ class DMDControls(tk.Frame):
             self.after(1000, self._update_power_mode_display)
     
     def auto_connect(self):
-        """Auto-connect to DMD on startup."""
+        """Auto-connect to DMD on startup"""
         if not self.dmd:
             print("No DMD instance provided")
             return
@@ -110,7 +110,6 @@ class DMDControls(tk.Frame):
             if self.dmd.connect():
                 if self.status_panel:
                     self.status_panel.set_dmd_status("Connected", True)
-                # Update power mode display
                 self._update_power_mode_display()
             else:
                 if self.status_panel:

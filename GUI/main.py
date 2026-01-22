@@ -40,7 +40,7 @@ dmd = None
 camera_controls = None
 dmd_controls = None
 
-# ---------------- Delayed Heavy Init ----------------
+# ---------------- Init ----------------
 def init_hardware():
     global camera, dmd, camera_controls, dmd_controls
 
@@ -50,8 +50,7 @@ def init_hardware():
     camera = ASICamera()
     dmd = DMD()
 
-    status_panel.reset_dmd_callback = dmd.software_reset()
-
+    status_panel.set_dmd(dmd)
     video_panel.set_camera(camera)
 
     dmd_controls = DMDControls(window, dmd=dmd, status_panel=status_panel)

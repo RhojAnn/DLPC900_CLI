@@ -148,18 +148,11 @@ int cmd_set_normal(void){
  * Reset software
  */
 int cmd_software_reset(void){
-
-    if(LCR_SetPowerMode(0x02) < 0){
-        printf("ERROR: Cannot reset software\n");
-        return -1;
-    }
-
-    /*
     if(LCR_SoftwareReset() < 0){
         printf("ERROR: Cannot perform software reset\n");
         return -1;
     }
-        */
+
     printf("Software reset initiated\n");
     return 0;
 }
