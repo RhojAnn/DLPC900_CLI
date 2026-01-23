@@ -42,6 +42,7 @@ dmd_controls = None
 
 # ============== Init ==============
 def init_hardware():
+    '''Initialize camera and DMD hardware'''
     global camera, dmd, camera_controls, dmd_controls
 
     from asi_wrapper import ASICamera
@@ -67,14 +68,17 @@ def init_hardware():
     window.after(200, dmd_controls.auto_connect)
 
 def keep_video_aspect(event=None):
+    '''Keep video panel aspect ratio square'''
     grid_info = window.grid_bbox(1, 0)
     size = min(grid_info[2], grid_info[3])
     video_panel.config(width=size, height=size)
 
 def enable_resize_bind():
+    '''Enable binding to keep video panel aspect ratio'''
     window.bind('<Configure>', keep_video_aspect)
 
 def on_closing():
+    '''Cleanup on window close'''
     if camera_controls:
         camera_controls.stop_health_check()
     if dmd_controls:

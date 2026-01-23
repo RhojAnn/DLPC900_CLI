@@ -33,6 +33,7 @@ class CameraControls(tk.Frame):
         return None
 
     def _auto_connect_helper(self):
+        '''Helper function to automatically connect to camera on startup'''
         if not self.camera:
             return
 
@@ -78,7 +79,7 @@ class CameraControls(tk.Frame):
             self.after(0, self._start_health_check)
 
     def _start_health_check(self, interval_ms: int = 2000):
-        """Start periodic camera health check."""
+        """Start periodic camera health check"""
         if self._health_check_id:
             self.after_cancel(self._health_check_id)
         self._check_camera_health()
@@ -105,7 +106,7 @@ class CameraControls(tk.Frame):
         # elif num_cams > 0:
             self._update_camera_status("Reconnecting...", False)
 
-            def reconnect_worker():
+            def reconnect_helper():
                 try:
                     try:
                         width = int(self.roi_width_var.get())
@@ -129,7 +130,7 @@ class CameraControls(tk.Frame):
 
                     self.after(0, on_reconnected)
 
-            threading.Thread(target=reconnect_worker, daemon=True).start()
+            threading.Thread(target=reconnect_helper, daemon=True).start()
         
         self._health_check_id = self.after(2000, self._check_camera_health)
     
@@ -147,6 +148,7 @@ class CameraControls(tk.Frame):
 # ============== Camera Mode ==============
 
     def create_camera_mode_section(self):
+        '''Create camera mode selection section'''
         self.label = tk.Label(self, text="Camera Mode", font=("Arial", 9, "bold"))
         self.label.pack(anchor="sw", padx=3, pady=3)
 
@@ -177,15 +179,14 @@ class CameraControls(tk.Frame):
                 self.video_panel.start_stream()
 
     def create_snapshot_save_section(self, parent=None):
-        # Save button for snapshot mode (initially hidden). Parent allows placement
-        # beside the radio buttons when requested.
+        '''Create save snapshot button'''
         parent = parent or self
         self.save_btn = tk.Button(parent, text="Save Snapshot", 
                                    command=self.on_save_snapshot,
                                    bg="green",
                                    fg="white",
                                    font=("Arial", 9))
-        # Do not pack by default; `on_mode_select` manages visibility.
+        # Do not pack by default. on_mode_select manages visibility.
         self.save_btn.pack_forget()
 
     def on_save_snapshot(self):
@@ -218,6 +219,7 @@ class CameraControls(tk.Frame):
 # ============== ROI/Position ==============
 
     def create_roi_section(self):
+        '''Create ROI width/height section'''
         self.label = tk.Label(self, text="ROI Section", font=("Arial", 9, "bold"))
         self.label.pack(anchor="sw", padx=3, pady=(10, 3))
 
@@ -245,6 +247,7 @@ class CameraControls(tk.Frame):
         self.roi_range_label.pack(anchor="w", padx=6, pady=(0, 3))
 
     def create_position_section(self):
+        '''Create position X/Y section'''
         self.label = tk.Label(self, text="Position", font=("Arial", 9, "bold"))
         self.label.pack(anchor="sw", padx=3, pady=(10, 3))
 
@@ -272,7 +275,7 @@ class CameraControls(tk.Frame):
         self.pos_range_label.pack(anchor="w", padx=6, pady=(0, 3))
 
     def on_apply_roi(self):
-        """Apply ROI settings."""
+        '''Apply ROI settings'''
         if not self.camera or not self.camera.is_connected:
             messagebox.showerror("Error", "Camera not connected")
             return
@@ -292,7 +295,7 @@ class CameraControls(tk.Frame):
         print(f"ROI applied: {width}x{height}")
 
     def on_apply_position(self):
-        """Apply position settings."""
+        """Apply position settings"""
         if not self.camera or not self.camera.is_connected:
             messagebox.showerror("Error", "Camera not connected")
             return
@@ -355,6 +358,7 @@ class CameraControls(tk.Frame):
 # ============== Exposure ==============
 
     def create_exposure_section(self):
+        '''Create exposure control section with slider and text box'''
         self.label = tk.Label(self, text="Exposure (μs)", font=("Arial", 9, "bold"))
         self.label.pack(anchor="sw", padx=3, pady=(10, 3))
 
@@ -375,13 +379,13 @@ class CameraControls(tk.Frame):
         self.exposure_range_label.pack(anchor="w", padx=6, pady=(0, 3))
 
     def on_exposure_slider_change(self, value):
-        """Update exposure from slider."""
+        """Update exposure from slider"""
         self.exposure_var.set(value)
         if self.camera and self.camera.is_connected:
             self.camera.set_exposure(int(value))
     
     def on_exposure_text_change(self, event=None):
-        """Update exposure from text entry."""
+        """Update exposure from text entry"""
         try:
             value = int(self.exposure_var.get())
             # Clamp to slider range
@@ -398,6 +402,7 @@ class CameraControls(tk.Frame):
 # ============== Gain ==============
 
     def create_gain_section(self):
+        '''Create gain control section with slider and text box'''
         self.label = tk.Label(self, text="Gain", font=("Arial", 9, "bold"))
         self.label.pack(anchor="sw", padx=3, pady=(10, 3))
 
@@ -418,13 +423,13 @@ class CameraControls(tk.Frame):
         self.gain_range_label.pack(anchor="w", padx=6, pady=(0, 3))
 
     def on_gain_slider_change(self, value):
-        """Update gain from slider."""
+        """Update gain from slider"""
         self.gain_var.set(value)
         if self.camera and self.camera.is_connected:
             self.camera.set_gain(int(value))
     
     def on_gain_text_change(self, event=None):
-        """Update gain from text entry."""
+        """Update gain from text entry"""
         try:
             value = int(self.gain_var.get())
             # Clamp to slider range

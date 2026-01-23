@@ -1,6 +1,14 @@
 from PIL import Image
 
 def generate_bmp(row,column,grid_size=10,grid_line_thickness=2):
+    """Generate a BMP file with a grid pattern and a highlighted cell.
+
+    Args:
+        row: Row index of the cell to highlight (0-based)
+        column: Column index of the cell to highlight (0-based)
+        grid_size: Number of cells along one side of the square grid
+        grid_line_thickness: Thickness of the grid lines in pixels
+    """
     CANVAS_W = 2048
     CANVAS_H = 1200
     SQUARE = 1200
@@ -14,7 +22,6 @@ def generate_bmp(row,column,grid_size=10,grid_line_thickness=2):
     grid_w = N * cell_size
     grid_h = N * cell_size
 
-    # Center the grid inside the square
     offset_x = pad_x + (SQUARE - grid_w) // 2
     offset_y = (SQUARE - grid_h) // 2
 

@@ -3,8 +3,6 @@ from tkinter import messagebox
 
 class StatusPanel(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
-        import ctypes
-        import os
         super().__init__(parent, borderwidth=2, relief="groove", *args, **kwargs)
         self.status_label = tk.Label(self, text="Status", font=("Arial", 10, "bold"))
         self.status_label.pack(anchor="nw", padx=3, pady=3)
@@ -32,14 +30,26 @@ class StatusPanel(tk.Frame):
 
 
     def set_camera_status(self, message: str, connected: bool):
-        """Update camera status display"""
+        """
+        Update camera status display
+        
+        Args:
+            message: Status message to display
+            connected: Connection status
+        """
         if connected:
             self.camera_status.config(text=f"Camera: {message}", fg="green")
         else:
             self.camera_status.config(text=f"Camera: {message}", fg="red")
     
     def set_dmd_status(self, message: str, connected: bool):
-        """Update DMD status display"""
+        """
+        Update DMD status display
+        
+        Args:
+            message: Status message to display
+            connected: Connection status
+        """
         if connected:
             self.dmd_status.config(text=f"DMD: {message}", fg="green")
         else:

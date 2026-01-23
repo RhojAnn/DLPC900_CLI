@@ -125,15 +125,15 @@ class DMDControls(tk.Frame):
 
             # If not connected, attempt reconnect in background (similar to camera logic)
             elif not self._was_connected and not is_connected:
-                def reconnect_worker():
+                def reconnect_helper():
                     try:
-                        ok = self.dmd.connect()
+                        connect = self.dmd.connect()
                     except Exception as e:
                         print(f"DMD reconnect error: {e}")
                         self.after(0, lambda: self.status_panel.set_dmd_status("Reconnecting failed", False) if self.status_panel else None)
                         return
 
-                    if ok:
+                    if connect:
                         def on_reconnected():
                             self._was_connected = True
                             if self.status_panel:
@@ -142,7 +142,7 @@ class DMDControls(tk.Frame):
 
                         self.after(0, on_reconnected)
 
-                threading.Thread(target=reconnect_worker, daemon=True).start()
+                threading.Thread(target=reconnect_helper, daemon=True).start()
 
         except Exception as e:
             print(f"DMD health check error: {e}")
@@ -181,6 +181,7 @@ class DMDControls(tk.Frame):
 # ============== Power Mode ==============
 
     def create_power_mode_section(self, parent=None):
+        '''Create power mode radio buttons'''
         parent = parent or self
         self.label = tk.Label(parent, text="Power Mode", font=("Arial", 9, "bold"))
         self.label.pack(anchor="w", padx=3, pady=(0,3))
@@ -225,6 +226,7 @@ class DMDControls(tk.Frame):
 # ============== Pattern Selection ==============
 
     def create_pattern_entry(self, parent=None):
+        '''Create row/column entry for pattern display'''
         parent = parent or self
         entry_frame = tk.Frame(parent)
         entry_frame.pack(anchor="w", padx=3, pady=(3,3))
@@ -300,6 +302,7 @@ class DMDControls(tk.Frame):
 
     # 10x10 button grid for pattern selection. Did not continue since it lags the program
     def create_button_grid(self, rows=10, cols=10):
+        '''Create a grid of buttons for pattern selection'''
         self.grid_frame = tk.Frame(self)
         self.grid_frame.pack(padx=3, pady=3)
 
@@ -315,6 +318,7 @@ class DMDControls(tk.Frame):
 
     # Tried to implement lazy loading to reduce lag but still lags
     def on_button_select(self, row, col, lazy_load=False):
+        """Handle button selection for pattern display"""
         # Deselect previous button
         if self.selected_button:
             self.grid_buttons[self.selected_button].config(bg='SystemButtonFace', relief='raised')
@@ -338,6 +342,7 @@ class DMDControls(tk.Frame):
                 messagebox.showwarning("DMD Not Connected", "Please connect to DMD first.")
 
     def stop_pattern(self):
+        """Stop any currently displayed pattern on the DMD"""
         # If create_button_grid and on_button_select are used,
         # Deselect the currently selected button
         # if self.selected_button:

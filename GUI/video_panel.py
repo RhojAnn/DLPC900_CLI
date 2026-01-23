@@ -33,12 +33,16 @@ class VideoPanel(tk.Frame):
         self.canvas.bind("<Configure>", self._on_resize)
     
     def _on_resize(self, event):
-        """Center placeholder text on resize."""
+        """
+        Center placeholder text on resize
+        Args:
+            event: Tkinter event
+        """
         self.canvas.coords(self.placeholder_text, event.width // 2, event.height // 2)
     
     def set_camera(self, camera):
         """
-        Set the camera instance to use for video.
+        Set the camera instance to use for video
         
         Args:
             camera: ASICamera instance
@@ -46,7 +50,7 @@ class VideoPanel(tk.Frame):
         self.camera = camera
     
     def start_stream(self):
-        """Start the video stream."""
+        """Start the video stream"""
         if self.camera is None or not self.camera.is_connected:
             print("Cannot start stream: camera not connected")
             return False
@@ -63,7 +67,7 @@ class VideoPanel(tk.Frame):
         return True
     
     def stop_stream(self):
-        """Stop the video stream."""
+        """Stop the video stream"""
         self.is_streaming = False
 
         # Stop capture thread
@@ -148,7 +152,16 @@ class VideoPanel(tk.Frame):
             print(f"Error displaying frame: {e}")
     
     def _resize_to_fit(self, image: Image.Image, max_width: int, max_height: int) -> Image.Image:
-        """Resize image to fit within bounds while maintaining aspect ratio."""
+        """
+        Resize image to fit within bounds while maintaining aspect ratio.
+        
+        Args:
+            image: PIL Image to resize
+            max_width: Maximum width
+            max_height: Maximum height
+        Returns:
+            Resized PIL Image
+        """
         img_width, img_height = image.size
         
         # Calculate scaling factor
