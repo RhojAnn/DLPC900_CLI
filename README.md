@@ -51,6 +51,15 @@ DLPC900_CLI/
 
 ## How to use
 
+### How to open
+1. Open Visual Studio Code
+2. Click `File` on the top left corner
+3. Click `Open Folder`
+4. Find this `DLPC900_CLI` in you directory
+5. Navigate to `GUI/main.py`
+6. Click the `Run Python File` arrow button
+7. Wait for the new window to load
+
 <img src="demo\demo1.png" width="800">
 
 The GUI layout
