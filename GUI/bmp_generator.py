@@ -16,7 +16,7 @@ def generate_bmp(row,column,grid_size=10,grid_line_thickness=2):
 
     pad_x = (CANVAS_W - SQUARE) // 2
 
-    N = grid_size  # square grid
+    N = grid_size  + 1 # square grid
     cell_size = SQUARE // N  # auto-fit
 
     grid_w = N * cell_size
