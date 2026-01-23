@@ -29,15 +29,14 @@ class CameraControls(tk.Frame):
     def auto_connect(self, status_panel=None):
         """Automatically connect to camera on startup."""
         self.status_panel_ref = status_panel
-        # Run potentially-blocking init in a background thread
-        threading.Thread(target=self._auto_connect_worker, args=(status_panel,), daemon=True).start()
+        threading.Thread(target=self._auto_connect_helper, daemon=True).start()
         return None
 
-    def _auto_connect_worker(self, status_panel):
+    def _auto_connect_helper(self):
         if not self.camera:
-            self.after(0, lambda: self._update_camera_status("No camera instance", False))
             return
 
+        # Get number of connected cameras
         num_cams = 0
         try:
             num_cams = self.camera.get_num_cameras()
@@ -64,21 +63,20 @@ class CameraControls(tk.Frame):
 
         if result == 0:
             def on_connected():
+                # Call helper function to
                 self._update_camera_status("Connected", True)
                 self._was_connected = True
                 self._update_control_ranges()
-                # Start video stream (UI thread will handle starting the capture)
+                # Start video stream
                 if self.video_panel:
-                    # call start_stream on UI thread to start UI-side state
                     self.video_panel.start_stream()
-                # Start periodic health check
                 self._start_health_check()
 
             self.after(0, on_connected)
         else:
             self.after(0, lambda: self._update_camera_status(f"Connection failed: {result}", False))
             self.after(0, self._start_health_check)
-    
+
     def _start_health_check(self, interval_ms: int = 2000):
         """Start periodic camera health check."""
         if self._health_check_id:
@@ -86,7 +84,7 @@ class CameraControls(tk.Frame):
         self._check_camera_health()
     
     def _check_camera_health(self):
-        """Check if camera is still connected."""
+        """Check if camera is still connected"""
         if not self.camera:
             self._health_check_id = self.after(2000, self._check_camera_health)
             return
@@ -96,6 +94,7 @@ class CameraControls(tk.Frame):
         
         # Detect disconnect
         if self._was_connected and not is_connected:
+        # if not is_connected:
             self._was_connected = False
             self._update_camera_status("Disconnected", False)
             if self.video_panel:
@@ -103,6 +102,7 @@ class CameraControls(tk.Frame):
         
         # Detect reconnect
         elif not self._was_connected and num_cams > 0:
+        # elif num_cams > 0:
             self._update_camera_status("Reconnecting...", False)
 
             def reconnect_worker():
@@ -144,47 +144,6 @@ class CameraControls(tk.Frame):
         if self.status_panel_ref:
             self.status_panel_ref.set_camera_status(message, connected)
 
-    def on_connect(self):
-        """Connect to camera."""
-        if not self.camera:
-            messagebox.showerror("Error", "No camera instance")
-            return
-        
-        # Get ROI
-        try:
-            width = int(self.roi_width_var.get())
-            height = int(self.roi_height_var.get())
-        except ValueError:
-            width, height = 1080, 1080
-        
-        result = self.camera.init_camera(width, height)
-        
-        if result == 0:
-            self.status_label.config(text="Connected", fg="green")
-            self.connect_btn.config(state="disabled")
-            self.disconnect_btn.config(state="normal")
-            
-            # Update exposure/gain ranges
-            self._update_control_ranges()
-            
-            # Start video if in video mode
-            if self.mode_var.get() == "Video" and self.video_panel:
-                self.video_panel.start_stream()
-        else:
-            messagebox.showerror("Error", f"Failed to connect: error {result}")
-    
-    def on_disconnect(self):
-        """Disconnect from camera."""
-        if self.video_panel:
-            self.video_panel.stop_stream()
-        
-        if self.camera:
-            self.camera.stop_camera()
-        
-        self.status_label.config(text="Not connected", fg="gray")
-        self.connect_btn.config(state="normal")
-        self.disconnect_btn.config(state="disabled")
- 
 # ============== Camera Mode ==============
 
     def create_camera_mode_section(self):

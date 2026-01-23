@@ -58,7 +58,7 @@ class DMDControls(tk.Frame):
         
         self.status_panel = status_panel
         self._health_check_id = None
-        # self.after(100, self._update_power_mode_display)
+        self._was_connected = False
 
 
 # ============== Connection/Status ==============
@@ -66,28 +66,27 @@ class DMDControls(tk.Frame):
     def auto_connect(self):
         """Auto-connect to DMD on startup"""
         if not self.dmd:
-            print("No DMD instance provided")
             return
+        threading.Thread(target=self._auto_connect_helper, daemon=True).start()
 
-        threading.Thread(target=self._auto_connect_worker, daemon=True).start()
-
-    def _auto_connect_worker(self):
+    def _auto_connect_helper(self):
         try:
-            success = self.dmd.connect()
+            connect = self.dmd.connect()
         except Exception as e:
-            print(f"DMD auto-connect error: {e}")
-            if self.status_panel:
-                self.after(0, lambda: self.status_panel.set_dmd_status(f"Error: {e}", False))
+            self.after(0, lambda: self.status_panel.set_dmd_status(f"Error: {e}", False))
             return
+        if connect:
+            def on_connected():
+                self._was_connected = True
+                if self.status_panel:
+                    self.status_panel.set_dmd_status("Connected", True)
+                self._update_power_mode_display()
 
-        if success:
-            if self.status_panel:
-                self.after(0, lambda: self.status_panel.set_dmd_status("Connected", True))
-            self.after(0, self._update_power_mode_display)
+            self.after(0, on_connected)
         else:
-            if self.status_panel:
-                self.after(0, lambda: self.status_panel.set_dmd_status("Connection failed", False))
-  
+            self.after(0, lambda: self.status_panel.set_dmd_status("Connection failed", False))
+    
+
     def start_health_check(self):
         """Start periodic health check for DMD connection."""
         self._check_dmd_health()
@@ -99,32 +98,64 @@ class DMDControls(tk.Frame):
             self._health_check_id = None
     
     def _check_dmd_health(self):
-        """Check DMD connection status periodically."""
+        """Check if camera is still connected.
+            Currently bugged"""
         if not self.dmd:
+            self._health_check_id = self.after(2000, self._check_dmd_health)
             return
-        
+
         try:
-            was_connected = self.dmd._connected
-            
-            if was_connected:
-                mode = self.dmd.get_power_mode()
-                if mode < 0:
-                    # Connection lost
-                    self.dmd._connected = False
+            is_connected = getattr(self.dmd, 'connected', getattr(self.dmd, '_connected', False))
+
+            # Detect disconnect (only act on transition)
+            if self._was_connected and not is_connected:
+                self._was_connected = False
+                try:
+                    # perform full cleanup via on_disconnect
+                    self.on_disconnect()
+                except Exception:
                     if self.status_panel:
                         self.status_panel.set_dmd_status("Disconnected", False)
-            else:
-                # Not connected, try to connect
-                if self.dmd.connect():
-                    if self.status_panel:
-                        self.status_panel.set_dmd_status("Connected", True)
-                    self._update_power_mode_display()
+
+            elif not self._was_connected and is_connected:
+                self._was_connected = True
+                if self.status_panel:
+                    self.status_panel.set_dmd_status("Connected", True)
+                self._update_power_mode_display()
+
+            # If not connected, attempt reconnect in background (similar to camera logic)
+            elif not self._was_connected and not is_connected:
+                def reconnect_worker():
+                    try:
+                        ok = self.dmd.connect()
+                    except Exception as e:
+                        print(f"DMD reconnect error: {e}")
+                        self.after(0, lambda: self.status_panel.set_dmd_status("Reconnecting failed", False) if self.status_panel else None)
+                        return
+
+                    if ok:
+                        def on_reconnected():
+                            self._was_connected = True
+                            if self.status_panel:
+                                self.status_panel.set_dmd_status("Connected", True)
+                            self._update_power_mode_display()
+
+                        self.after(0, on_reconnected)
+
+                threading.Thread(target=reconnect_worker, daemon=True).start()
+
         except Exception as e:
             print(f"DMD health check error: {e}")
-            self.dmd._connected = False
-            if self.status_panel:
-                self.status_panel.set_dmd_status("Error", False)
-        
+            try:
+                self._was_connected = False
+            except Exception:
+                pass
+            try:
+                self.on_disconnect()
+            except Exception:
+                if self.status_panel:
+                    self.status_panel.set_dmd_status("Error", False)
+
         # Schedule next check in 2 seconds
         self._health_check_id = self.after(2000, self._check_dmd_health)
 
@@ -199,20 +230,21 @@ class DMDControls(tk.Frame):
         entry_frame.pack(anchor="w", padx=3, pady=(3,3))
         tk.Label(entry_frame, text="Grid:").pack(side="left")
         self.grid_var = tk.StringVar(value="10")
-        grid_entry = tk.Entry(entry_frame, textvariable=self.grid_var, width=4)
-        grid_entry.pack(side="left", padx=1)
+        self.grid_entry = tk.Entry(entry_frame, textvariable=self.grid_var, width=4)
+        self.grid_entry.pack(side="left", padx=1)
 
         tk.Label(entry_frame, text="Row:").pack(side="left")
         self.row_var = tk.StringVar(value="0")
-        row_entry = tk.Entry(entry_frame, textvariable=self.row_var, width=4)
-        row_entry.pack(side="left", padx=1)
+        self.row_entry = tk.Entry(entry_frame, textvariable=self.row_var, width=4)
+        self.row_entry.pack(side="left", padx=1)
 
         tk.Label(entry_frame, text="Col:").pack(side="left")
         self.col_var = tk.StringVar(value="0")
-        col_entry = tk.Entry(entry_frame, textvariable=self.col_var, width=4)
-        col_entry.pack(side="left", padx=1)
-        display_btn = tk.Button(entry_frame, text="Display Pattern", command=self.display_row_column)
-        display_btn.pack(side="left", padx=3)
+        self.col_entry = tk.Entry(entry_frame, textvariable=self.col_var, width=4)
+        self.col_entry.pack(side="left", padx=1)
+
+        self.display_btn = tk.Button(entry_frame, text="Display Pattern", command=self.display_row_column)
+        self.display_btn.pack(side="left", padx=3)
 
     def display_row_column(self):
         """Parse row/col from entry and call on_button_select for pattern display."""
@@ -227,23 +259,44 @@ class DMDControls(tk.Frame):
         if not (0 <= row <= grid and 0 <= col <= grid):
             return
 
-        generate_bmp(row, col, grid)
+        # Press and disable the button while work is running
+        self.display_btn.config(state="disabled", relief="sunken")
 
-        def delayed_display():
-            image_path = Path(__file__).parent.parent / "row_pattern" / f"current.bmp"
-            if not image_path.exists():
-                messagebox.showerror("Error", f"BMP file could not be generated")
-                return
+        threading.Thread(target=lambda: self._generate_and_schedule_display(row, col, grid), daemon=True).start()
 
-            if self.dmd and self.dmd.connected:
-                try:
-                    self.dmd.display_bmp(str(image_path))
-                except Exception as e:
-                    messagebox.showerror("Error", f"Failed to display {image_path}: {e}")
-            else:
-                messagebox.showwarning("DMD Not Connected", "Please connect to DMD first.")
+    def _generate_and_schedule_display(self, row, col, grid):
+        """Generate BMP in background and schedule UI display/restoration."""
+        try:
+            generate_bmp(row, col, grid)
+        except Exception as e:
+            self.after(0, lambda: messagebox.showerror("Error", f"BMP generation failed: {e}"))
+            self.after(0, lambda: self.display_btn.config(state="normal", relief="raised"))
+            return
 
-        self.after(100, delayed_display)
+        image_path = Path(__file__).parent.parent / "row_pattern" / "current.bmp"
+        if not image_path.exists():
+            self.after(0, lambda: messagebox.showerror("Error", f"BMP file could not be generated"))
+            self.after(0, lambda: self.display_btn.config(state="normal", relief="raised"))
+            return
+
+        # Schedule the display and UI restore on the main thread
+        self.after(0, lambda: self._display_bmp(image_path))
+
+    def _display_bmp(self, image_path: Path):
+        """Display BMP on the DMD"""
+        if self.dmd and self.dmd.connected:
+            try:
+                self.dmd.display_bmp(str(image_path))
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to display {image_path}: {e}")
+        else:
+            messagebox.showwarning("DMD Not Connected", "Please connect to DMD first.")
+
+        # Restore button state
+        try:
+            self.display_btn.config(state="normal", relief="raised")
+        except Exception:
+            pass
 
     # 10x10 button grid for pattern selection. Did not continue since it lags the program
     def create_button_grid(self, rows=10, cols=10):
@@ -341,5 +394,3 @@ class DMDControls(tk.Frame):
                 messagebox.showerror("Error", "Failed to display black pattern")
         except Exception as e:
             messagebox.showerror("Error", f"Black pattern failed: {e}")
-
-    # end of testing patterns

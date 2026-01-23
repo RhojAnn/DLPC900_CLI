@@ -25,7 +25,9 @@ DMD_API int dmd_connect(void) {
 }
 
 DMD_API int dmd_disconnect(void) {
-    return cmd_disconnect();
+    return cmd_clear_pattern() && 
+           cmd_disable() &&
+           cmd_disconnect();
 }
 
 // ============== Status ==============

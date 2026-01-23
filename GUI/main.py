@@ -69,24 +69,10 @@ def init_hardware():
 def keep_video_aspect(event=None):
     grid_info = window.grid_bbox(1, 0)
     size = min(grid_info[2], grid_info[3])
-    # Only update if size changed to avoid layout thrash
-    try:
-        cur_w = video_panel.winfo_width()
-        cur_h = video_panel.winfo_height()
-        if cur_w == size and cur_h == size:
-            return
-    except Exception:
-        pass
     video_panel.config(width=size, height=size)
 
 def enable_resize_bind():
-    # Debounce configure events to avoid frequent layout work
-    def _on_config(event):
-        if hasattr(window, '_resize_after_id') and window._resize_after_id:
-            window.after_cancel(window._resize_after_id)
-        window._resize_after_id = window.after(100, keep_video_aspect)
-
-    window.bind('<Configure>', _on_config)
+    window.bind('<Configure>', keep_video_aspect)
 
 def on_closing():
     if camera_controls:
