@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 from pathlib import Path
-from .bmp_generator import generate_bmp 
+import threading
+from bmp_generator import generate_bmp 
 
 class DMDControls(tk.Frame):
     def __init__(self, parent, dmd=None, status_panel=None, *args, **kwargs):
@@ -67,19 +68,25 @@ class DMDControls(tk.Frame):
         if not self.dmd:
             print("No DMD instance provided")
             return
-        
+
+        threading.Thread(target=self._auto_connect_worker, daemon=True).start()
+
+    def _auto_connect_worker(self):
         try:
-            if self.dmd.connect():
-                if self.status_panel:
-                    self.status_panel.set_dmd_status("Connected", True)
-                self._update_power_mode_display()
-            else:
-                if self.status_panel:
-                    self.status_panel.set_dmd_status("Connection failed", False)
+            success = self.dmd.connect()
         except Exception as e:
             print(f"DMD auto-connect error: {e}")
             if self.status_panel:
-                self.status_panel.set_dmd_status(f"Error: {e}", False)
+                self.after(0, lambda: self.status_panel.set_dmd_status(f"Error: {e}", False))
+            return
+
+        if success:
+            if self.status_panel:
+                self.after(0, lambda: self.status_panel.set_dmd_status("Connected", True))
+            self.after(0, self._update_power_mode_display)
+        else:
+            if self.status_panel:
+                self.after(0, lambda: self.status_panel.set_dmd_status("Connection failed", False))
   
     def start_health_check(self):
         """Start periodic health check for DMD connection."""
@@ -191,14 +198,17 @@ class DMDControls(tk.Frame):
         entry_frame = tk.Frame(parent)
         entry_frame.pack(anchor="w", padx=3, pady=(3,3))
         tk.Label(entry_frame, text="Grid:").pack(side="left")
-        self.grid_var = tk.StringVar()
-        row_entry = tk.Entry(entry_frame, textvariable=self.row_var, width=4)
+        self.grid_var = tk.StringVar(value="10")
+        grid_entry = tk.Entry(entry_frame, textvariable=self.grid_var, width=4)
+        grid_entry.pack(side="left", padx=1)
+
         tk.Label(entry_frame, text="Row:").pack(side="left")
-        self.row_var = tk.StringVar()
+        self.row_var = tk.StringVar(value="0")
         row_entry = tk.Entry(entry_frame, textvariable=self.row_var, width=4)
         row_entry.pack(side="left", padx=1)
+
         tk.Label(entry_frame, text="Col:").pack(side="left")
-        self.col_var = tk.StringVar()
+        self.col_var = tk.StringVar(value="0")
         col_entry = tk.Entry(entry_frame, textvariable=self.col_var, width=4)
         col_entry.pack(side="left", padx=1)
         display_btn = tk.Button(entry_frame, text="Display Pattern", command=self.display_row_column)
@@ -233,7 +243,7 @@ class DMDControls(tk.Frame):
             else:
                 messagebox.showwarning("DMD Not Connected", "Please connect to DMD first.")
 
-        self.after(2000, delayed_display)
+        self.after(100, delayed_display)
 
     # 10x10 button grid for pattern selection. Did not continue since it lags the program
     def create_button_grid(self, rows=10, cols=10):

@@ -20,8 +20,6 @@ def generate_bmp(row,column,grid_size=10,grid_line_thickness=2):
 
     img = Image.new("1", (CANVAS_W, CANVAS_H), 1)  # start white
     pixels = img.load()
-    img.save(FILENAME, "BMP")
-    print(f"Saved BMP: {FILENAME}")
 
     for y in range(CANVAS_H):
         for x in range(CANVAS_W):

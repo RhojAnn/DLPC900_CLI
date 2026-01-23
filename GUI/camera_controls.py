@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
+import threading
 
 class CameraControls(tk.Frame):
     def __init__(self, parent, camera=None, video_panel=None, *args, **kwargs):
@@ -28,42 +29,55 @@ class CameraControls(tk.Frame):
     def auto_connect(self, status_panel=None):
         """Automatically connect to camera on startup."""
         self.status_panel_ref = status_panel
-        
+        # Run potentially-blocking init in a background thread
+        threading.Thread(target=self._auto_connect_worker, args=(status_panel,), daemon=True).start()
+        return None
+
+    def _auto_connect_worker(self, status_panel):
         if not self.camera:
-            self._update_camera_status("No camera instance", False)
-            return False
-        
-        num_cams = self.camera.get_num_cameras()
+            self.after(0, lambda: self._update_camera_status("No camera instance", False))
+            return
+
+        num_cams = 0
+        try:
+            num_cams = self.camera.get_num_cameras()
+        except Exception as e:
+            print(f"Error checking cameras: {e}")
+
         if num_cams == 0:
-            self._update_camera_status("No cameras detected", False)
-            self._start_health_check()
-            return False
-        
+            self.after(0, lambda: self._update_camera_status("No cameras detected", False))
+            self.after(0, self._start_health_check)
+            return
+
         # Get ROI from input fields
         try:
             width = int(self.roi_width_var.get())
             height = int(self.roi_height_var.get())
         except (ValueError, AttributeError):
             width, height = 1080, 1080
-        
-        result = self.camera.init_camera(width, height)
-        
+
+        result = -1
+        try:
+            result = self.camera.init_camera(width, height)
+        except Exception as e:
+            print(f"Camera init error: {e}")
+
         if result == 0:
-            self._update_camera_status("Connected", True)
-            self._was_connected = True
-            self._update_control_ranges()
-            
-            # Start video stream
-            if self.video_panel:
-                self.video_panel.start_stream()
-            
-            # Start periodic health check
-            self._start_health_check()
-            return True
+            def on_connected():
+                self._update_camera_status("Connected", True)
+                self._was_connected = True
+                self._update_control_ranges()
+                # Start video stream (UI thread will handle starting the capture)
+                if self.video_panel:
+                    # call start_stream on UI thread to start UI-side state
+                    self.video_panel.start_stream()
+                # Start periodic health check
+                self._start_health_check()
+
+            self.after(0, on_connected)
         else:
-            self._update_camera_status(f"Connection failed: {result}", False)
-            self._start_health_check()
-            return False
+            self.after(0, lambda: self._update_camera_status(f"Connection failed: {result}", False))
+            self.after(0, self._start_health_check)
     
     def _start_health_check(self, interval_ms: int = 2000):
         """Start periodic camera health check."""
@@ -90,19 +104,32 @@ class CameraControls(tk.Frame):
         # Detect reconnect
         elif not self._was_connected and num_cams > 0:
             self._update_camera_status("Reconnecting...", False)
-            try:
-                width = int(self.roi_width_var.get())
-                height = int(self.roi_height_var.get())
-            except (ValueError, AttributeError):
-                width, height = 1080, 1080
-            
-            result = self.camera.init_camera(width, height)
-            if result == 0:
-                self._was_connected = True
-                self._update_camera_status("Connected", True)
-                self._update_control_ranges()
-                if self.video_panel and self.mode_var.get() == "Video":
-                    self.video_panel.start_stream()
+
+            def reconnect_worker():
+                try:
+                    try:
+                        width = int(self.roi_width_var.get())
+                        height = int(self.roi_height_var.get())
+                    except (ValueError, AttributeError):
+                        width, height = 1080, 1080
+
+                    result = self.camera.init_camera(width, height)
+                except Exception as e:
+                    print(f"Reconnect init error: {e}")
+                    self.after(0, lambda: self._update_camera_status("Reconnecting failed", False))
+                    return
+
+                if result == 0:
+                    def on_reconnected():
+                        self._was_connected = True
+                        self._update_camera_status("Connected", True)
+                        self._update_control_ranges()
+                        if self.video_panel and self.mode_var.get() == "Video":
+                            self.video_panel.start_stream()
+
+                    self.after(0, on_reconnected)
+
+            threading.Thread(target=reconnect_worker, daemon=True).start()
         
         self._health_check_id = self.after(2000, self._check_camera_health)
     
